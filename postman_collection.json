@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "CA Tracker API Collection",
+    "_postman_id": "7fb8f067-07c7-4f92-82ec-43c668bb89c4",
+    "description": "Postman collection for CA Tracker auth, clients, services, billing, and payments APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@ca.com\",\n  \"password\": \"demo1234\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        { "name": "Logout", "request": { "method": "POST", "url": "{{baseUrl}}/auth/logout" } },
+        { "name": "Me", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        { "name": "List Clients", "request": { "method": "GET", "url": "{{baseUrl}}/clients?page=1&limit=20" } },
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Pvt Ltd\",\n  \"email\": \"acme@example.com\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{baseUrl}}/clients"
+          }
+        },
+        { "name": "Get Client", "request": { "method": "GET", "url": "{{baseUrl}}/clients/{{clientId}}" } },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"city\": \"Pune\"\n}" },
+            "url": "{{baseUrl}}/clients/{{clientId}}"
+          }
+        },
+        { "name": "Delete Client", "request": { "method": "DELETE", "url": "{{baseUrl}}/clients/{{clientId}}" } }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        { "name": "List Services", "request": { "method": "GET", "url": "{{baseUrl}}/services?page=1&limit=20" } },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"GST Monthly Filing\",\n  \"code\": \"GST-MONTHLY\",\n  \"category\": \"GST\",\n  \"defaultPrice\": 2500,\n  \"billingCycle\": \"monthly\"\n}"
+            },
+            "url": "{{baseUrl}}/services"
+          }
+        },
+        { "name": "Get Service", "request": { "method": "GET", "url": "{{baseUrl}}/services/{{serviceId}}" } },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"defaultPrice\": 3000\n}" },
+            "url": "{{baseUrl}}/services/{{serviceId}}"
+          }
+        },
+        { "name": "Delete Service", "request": { "method": "DELETE", "url": "{{baseUrl}}/services/{{serviceId}}" } }
+      ]
+    },
+    {
+      "name": "Client Services",
+      "item": [
+        { "name": "List Client Services", "request": { "method": "GET", "url": "{{baseUrl}}/client-services?page=1&limit=20" } },
+        {
+          "name": "Assign Service",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"serviceId\": \"{{serviceId}}\",\n  \"customPrice\": 3200,\n  \"startDate\": \"2026-04-01\"\n}"
+            },
+            "url": "{{baseUrl}}/client-services"
+          }
+        },
+        { "name": "Get Client Service", "request": { "method": "GET", "url": "{{baseUrl}}/client-services/{{clientServiceId}}" } },
+        { "name": "Get Client Services by Client", "request": { "method": "GET", "url": "{{baseUrl}}/client-services/client/{{clientId}}" } },
+        {
+          "name": "Update Client Service",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customPrice\": 3500\n}" },
+            "url": "{{baseUrl}}/client-services/{{clientServiceId}}"
+          }
+        },
+        { "name": "Delete Client Service", "request": { "method": "DELETE", "url": "{{baseUrl}}/client-services/{{clientServiceId}}" } }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Generate Billing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"month\": 4,\n  \"year\": 2026\n}" },
+            "url": "{{baseUrl}}/billing/generate"
+          }
+        },
+        { "name": "Billing Matrix", "request": { "method": "GET", "url": "{{baseUrl}}/billing/matrix?fy=2026-27" } },
+        { "name": "Billing Stats", "request": { "method": "GET", "url": "{{baseUrl}}/billing/stats?fy=2026-27" } },
+        { "name": "List Billings", "request": { "method": "GET", "url": "{{baseUrl}}/billing?page=1&limit=20" } },
+        { "name": "Get Billing", "request": { "method": "GET", "url": "{{baseUrl}}/billing/{{billingId}}" } },
+        {
+          "name": "Update Billing Status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"paid\"\n}" },
+            "url": "{{baseUrl}}/billing/{{billingId}}"
+          }
+        },
+        { "name": "Mark Overdue", "request": { "method": "POST", "url": "{{baseUrl}}/billing/mark-overdue" } }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"amount\": 10000,\n  \"mode\": \"bank_transfer\",\n  \"reference\": \"UTR12345\",\n  \"receivedOn\": \"2026-05-01\"\n}"
+            },
+            "url": "{{baseUrl}}/payments"
+          }
+        },
+        { "name": "Payment Stats", "request": { "method": "GET", "url": "{{baseUrl}}/payments/stats" } },
+        { "name": "Client Payment History", "request": { "method": "GET", "url": "{{baseUrl}}/payments/client/{{clientId}}" } },
+        { "name": "List Payments", "request": { "method": "GET", "url": "{{baseUrl}}/payments?page=1&limit=20" } },
+        { "name": "Get Payment", "request": { "method": "GET", "url": "{{baseUrl}}/payments/{{paymentId}}" } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "clientId", "value": "" },
+    { "key": "serviceId", "value": "" },
+    { "key": "clientServiceId", "value": "" },
+    { "key": "billingId", "value": "" },
+    { "key": "paymentId", "value": "" }
+  ]
+}

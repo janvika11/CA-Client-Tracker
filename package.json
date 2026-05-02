@@ -1,0 +1,27 @@
+{
+  "name": "ca-practice-management-billing-tracker",
+  "version": "1.0.0",
+  "description": "CA Practice Management & Billing Tracker - MERN Stack",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "CA",
+    "Accounting",
+    "Billing",
+    "MERN",
+    "Practice Management"
+  ],
+  "author": "",
+  "license": "MIT"
+}

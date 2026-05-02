@@ -1,0 +1,28 @@
+{
+  "name": "ca-tracker-server",
+  "version": "3.0.0",
+  "description": "Backend API for CA Tracking",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "build": "echo 'Build script - ready for production'",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^7.0.0",
+    "cookie-parser": "^1.4.6",
+    "zod": "^3.22.4",
+    "node-cron": "^3.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

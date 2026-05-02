@@ -44,7 +44,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen flex-col bg-[#0f172a] font-sans antialiased">
       {/* Mini navbar */}
-      <div className="mx-auto flex w-full max-w-[400px] items-center justify-between px-4 pt-8 sm:px-0 sm:pt-10">
+      <div className="mx-auto flex w-full max-w-[400px] items-center justify-between px-4 pt-8 sm:pt-10">
         <div className="flex items-center gap-2">
           <div
             className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[8px] text-[13px] font-bold tracking-tight text-white"

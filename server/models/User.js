@@ -48,14 +48,18 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ email: 1 });
 userSchema.index({ firmId: 1 });
 
-// Hash password before saving
+// Hash plaintext password before saving (skip if value is already a bcrypt hash — avoids double-hash from seed mistakes).
 userSchema.pre('save', async function (next) {
   if (!this.isModified('passwordHash')) {
     return next();
   }
+  const raw = this.passwordHash;
+  if (typeof raw === 'string' && /^\$2[aby]\$\d{2}\$/.test(raw)) {
+    return next();
+  }
   try {
     const salt = await bcrypt.genSalt(10);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    this.passwordHash = await bcrypt.hash(raw, salt);
     next();
   } catch (err) {
     next(err);

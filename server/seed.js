@@ -25,8 +25,7 @@ async function seedDatabase() {
       Payment.deleteMany({})
     ]);
 
-    // Create demo CA user — set plaintext on passwordHash so User pre('save') hashes once.
-    // (Pre-hashing here caused double-hash and broke production login / comparePassword.)
+    // Demo login: plain password only — User pre('save') hashes passwordHash once (never bcrypt.hash here).
     console.log('Creating demo CA user...');
     const demoUser = await User.create({
       name: 'Demo CA',

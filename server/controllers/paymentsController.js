@@ -2,6 +2,17 @@ import Payment from '../models/Payment.js';
 import BillingEntry from '../models/BillingEntry.js';
 import Client from '../models/Client.js';
 
+function formatPeriodLabel(period) {
+  if (!period || typeof period !== 'object') return '—';
+  if (period.label) return String(period.label);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (period.year != null && period.month != null && period.month >= 1 && period.month <= 12) {
+    return `${months[period.month - 1]} ${period.year}`;
+  }
+  if (period.quarter != null && period.year != null) return `Q${period.quarter} ${period.year}`;
+  return '—';
+}
+
 export const recordPayment = async (req, res, next) => {
   try {
     const { clientId, invoiceIds, amount, mode, reference, receivedOn, notes } = req.body;
@@ -49,14 +60,18 @@ export const recordPayment = async (req, res, next) => {
         _id: { $in: invoiceIds },
         clientId,
         firmId: req.tenantFirmId
-      }).sort({ dueDate: 1 });
+      })
+        .populate('serviceId', 'name code')
+        .sort({ dueDate: 1 });
     } else {
       // FIFO allocation - oldest first
       targetInvoices = await BillingEntry.find({
         clientId,
         firmId: req.tenantFirmId,
         status: { $in: ['pending', 'partially_paid', 'overdue'] }
-      }).sort({ dueDate: 1 });
+      })
+        .populate('serviceId', 'name code')
+        .sort({ dueDate: 1 });
     }
 
     if (targetInvoices.length === 0) {
@@ -75,6 +90,8 @@ export const recordPayment = async (req, res, next) => {
       if (remainingAmount <= 0) break;
 
       const outstanding = invoice.amount - invoice.amountPaid;
+      if (outstanding <= 0) continue;
+
       const paymentForThisInvoice = Math.min(remainingAmount, outstanding);
 
       const newAmountPaid = invoice.amountPaid + paymentForThisInvoice;
@@ -102,6 +119,10 @@ export const recordPayment = async (req, res, next) => {
 
       allocationDetails.push({
         invoiceId: invoice._id,
+        dueDate: invoice.dueDate,
+        serviceName: invoice.serviceId?.name || 'Service',
+        periodLabel: formatPeriodLabel(invoice.period),
+        financialYear: invoice.financialYear,
         invoiceAmount: invoice.amount,
         allocatedAmount: paymentForThisInvoice,
         newStatus,

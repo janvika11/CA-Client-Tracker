@@ -14,6 +14,34 @@ import { SkeletonBlock } from '../components/ui/skeleton';
 
 const MODES = ['cash', 'upi', 'bank_transfer', 'cheque'];
 
+function formatPeriodLabel(period) {
+  if (!period || typeof period !== 'object') return '—';
+  if (period.label) return String(period.label);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (period.year != null && period.month != null && period.month >= 1 && period.month <= 12) {
+    return `${months[period.month - 1]} ${period.year}`;
+  }
+  if (period.quarter != null && period.year != null) return `Q${period.quarter} ${period.year}`;
+  return '—';
+}
+
+/** Align API allocations (allocatedAmount, invoiceId) with UI preview shape and enrich from unpaid rows. */
+function mergeAllocationsForReceipt(apiAllocations, previewAllocations, unpaidRows) {
+  const raw = apiAllocations?.length ? apiAllocations : previewAllocations || [];
+  return raw
+    .map((item) => {
+      const invId = String(item.invoiceId ?? item.id ?? '');
+      const inv = unpaidRows.find((r) => String(r._id || r.id) === invId);
+      const allocated = Number(item.allocatedAmount ?? item.allocated ?? 0);
+      const dueDate = item.dueDate ?? inv?.dueDate;
+      const serviceName =
+        item.serviceName || inv?.serviceId?.name || inv?.service?.name || '—';
+      const periodLabel = item.periodLabel || formatPeriodLabel(item.period ?? inv?.period);
+      return { dueDate, allocated, serviceName, periodLabel };
+    })
+    .filter((row) => row.allocated > 0);
+}
+
 function buildFifoAllocations(invoices, amount, checkedIds) {
   let remaining = Number(amount || 0);
   const allocations = [];
@@ -38,6 +66,7 @@ function buildFifoAllocations(invoices, amount, checkedIds) {
 
 function generateReceiptPDF(paymentData) {
   const doc = new jsPDF();
+  const lines = paymentData.allocations || [];
   doc.setFontSize(16);
   doc.text('Payment Receipt', 14, 18);
   doc.setFontSize(11);
@@ -46,15 +75,14 @@ function generateReceiptPDF(paymentData) {
   doc.text(`Mode: ${formatPaymentMode(paymentData.mode)}`, 14, 46);
   doc.text(`Reference: ${paymentData.reference}`, 14, 54);
   doc.text(`Date: ${formatDate(paymentData.receivedOn)}`, 14, 62);
-  doc.text(`Allocated to ${paymentData.allocations.length} invoice(s)`, 14, 70);
+  doc.text(`Allocated to ${lines.length} invoice(s)`, 14, 70);
   let y = 80;
-  paymentData.allocations.forEach((item, idx) => {
-    doc.text(
-      `${idx + 1}. ${formatDate(item.dueDate)} - ${formatINRForPdf(item.allocated)}`,
-      14,
-      y
-    );
-    y += 8;
+  const maxW = 182;
+  lines.forEach((item, idx) => {
+    const line = `${idx + 1}. ${item.serviceName} · ${item.periodLabel} · Due ${formatDate(item.dueDate)} · ${formatINRForPdf(item.allocated)}`;
+    const wrapped = doc.splitTextToSize(line, maxW);
+    doc.text(wrapped, 14, y);
+    y += wrapped.length * 5 + 3;
   });
   doc.save(`receipt-${dayjs().format('YYYYMMDD-HHmmss')}.pdf`);
 }
@@ -94,7 +122,7 @@ export default function Payments() {
         mode: paymentMode,
         reference,
         receivedOn,
-        allocations: result?.allocations || allocationState.allocations,
+        allocations: mergeAllocationsForReceipt(result?.allocations, allocationState.allocations, unpaidRows),
       });
       resetModal();
     },

@@ -4,6 +4,7 @@ import { ArrowLeft, Building2 } from 'lucide-react';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { getBillingEntries, getClient, getClientServices, getPayments, updateClient } from '../lib/api';
 import {
+  cn,
   formatBillingCycle,
   formatDate,
   formatINR,
@@ -11,6 +12,7 @@ import {
   formatPaymentMode,
   getAvatarToneClass,
   getInitials,
+  getStatusTone,
 } from '../lib/utils';
 import { Card } from '../components/ui/card';
 import { SkeletonBlock } from '../components/ui/skeleton';
@@ -114,7 +116,7 @@ export default function ClientDetail() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpi.map((item) => (
-          <Card key={item.label} className={`border-l-4 ${item.border} p-4`}>
+          <Card key={item.label} className={cn('border-l-4 p-4 shadow-card dark:shadow-card-dark', item.border)}>
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{item.label}</p>
             <p
               className={`mt-2 font-bold tabular-nums text-zinc-900 dark:text-white ${item.small ? 'text-sm' : 'text-xl'} ${item.valueClass || ''}`}
@@ -125,21 +127,25 @@ export default function ClientDetail() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-1 dark:border-zinc-800">
+      <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-zinc-800 dark:bg-zinc-900/60">
         {tabs.map((item) => (
-          <Button
+          <button
             key={item}
-            size="sm"
-            variant={tab === item ? 'default' : 'ghost'}
-            className={tab === item ? '' : 'text-zinc-600 dark:text-zinc-400'}
+            type="button"
             onClick={() => setTab(item)}
+            className={cn(
+              'rounded-lg px-4 py-2.5 text-sm font-semibold transition-all',
+              tab === item
+                ? 'bg-white text-emerald-800 shadow-sm ring-2 ring-emerald-500/25 dark:bg-zinc-800 dark:text-emerald-300 dark:ring-emerald-500/30'
+                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-white'
+            )}
           >
             {item}
-          </Button>
+          </button>
         ))}
       </div>
 
-      <Card>
+      <Card className="shadow-card dark:shadow-card-dark">
         {tab === 'Overview' && (
           <div className="grid gap-4 text-sm text-zinc-700 dark:text-zinc-300 sm:grid-cols-2">
             <p>
@@ -225,7 +231,12 @@ export default function ClientDetail() {
                 <li key={b._id || b.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <span className="text-zinc-600 dark:text-zinc-400">{formatDate(b.dueDate)}</span>
                   <span className="font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(b.amount)}</span>
-                  <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <span
+                    className={cn(
+                      'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-black/5 dark:ring-white/10',
+                      getStatusTone(b.status)
+                    )}
+                  >
                     {formatInvoiceStatus(b.status)}
                   </span>
                 </li>

@@ -196,7 +196,7 @@ npm run build
 ## 📊 Seed Data
 
 The `seed.js` script populates the database with:
-- **1 Demo User**: email: `demo@ca.com`, password: `demo1234`
+- **1 Demo User**: email: `demo@ca.com`, password: `CaTracker_Demo_2026!` (run `npm run seed`; printed in the console too)
 - **8 Services**: GST Filing, TDS, ITR, ROC, Audit, Advisory, Bookkeeping
 - **15 Clients**: Varied industries with mixed service subscriptions
 - **6 Months Billing History**: With realistic payment statuses

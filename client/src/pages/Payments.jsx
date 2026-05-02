@@ -4,7 +4,7 @@ import { Wallet } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { jsPDF } from 'jspdf';
 import { getBillingEntries, getClients, getPayments, recordPayment } from '../lib/api';
-import { formatDate, formatINR, formatINRForPdf, formatPaymentMode } from '../lib/utils';
+import { cn, formatDate, formatINR, formatINRForPdf, formatPaymentMode } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -13,6 +13,21 @@ import { Select } from '../components/ui/select';
 import { SkeletonBlock } from '../components/ui/skeleton';
 
 const MODES = ['cash', 'upi', 'bank_transfer', 'cheque'];
+
+function paymentModeBadgeClass(mode) {
+  switch (mode) {
+    case 'cash':
+      return 'bg-slate-200/90 text-slate-900 dark:bg-zinc-700 dark:text-zinc-100';
+    case 'upi':
+      return 'bg-violet-100 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200';
+    case 'bank_transfer':
+      return 'bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-200';
+    case 'cheque':
+      return 'bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100';
+    default:
+      return 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300';
+  }
+}
 
 function formatPeriodLabel(period) {
   if (!period || typeof period !== 'object') return '—';
@@ -208,10 +223,15 @@ export default function Payments() {
         </Button>
       </div>
 
-      <Card className="overflow-hidden p-0">
-        <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
+      <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
+        <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
           <div className="grid gap-2 md:grid-cols-3">
-            <Input placeholder="Search reference / client…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input
+              className="border-slate-200 dark:border-zinc-700"
+              placeholder="Search reference / client…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
             <Select value={mode} onChange={(e) => setMode(e.target.value)}>
               <option value="">All modes</option>
               {MODES.map((item) => (
@@ -224,13 +244,13 @@ export default function Payments() {
         </div>
         <div className="overflow-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/90 dark:text-zinc-400">
+            <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3">Mode</th>
-                <th className="px-4 py-3">Reference</th>
+                <th className="w-32 px-4 py-3">Date</th>
+                <th className="min-w-[10rem] px-4 py-3">Client</th>
+                <th className="w-36 px-4 py-3 text-right">Amount</th>
+                <th className="w-36 px-4 py-3">Mode</th>
+                <th className="min-w-[8rem] px-4 py-3">Reference</th>
               </tr>
             </thead>
             <tbody>
@@ -250,12 +270,21 @@ export default function Payments() {
               {rows.map((row) => (
                 <tr
                   key={row._id || row.id}
-                  className="border-t border-zinc-200 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
+                  className="border-b border-slate-100 transition-colors hover:bg-emerald-50/30 dark:border-zinc-800 dark:hover:bg-emerald-950/15"
                 >
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatDate(row.receivedOn)}</td>
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.clientId?.name || '—'}</td>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(row.amount)}</td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatPaymentMode(row.mode)}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-zinc-400">{formatDate(row.receivedOn)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{row.clientId?.name || '—'}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900 dark:text-white">{formatINR(row.amount)}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-tight',
+                        paymentModeBadgeClass(row.mode)
+                      )}
+                    >
+                      {formatPaymentMode(row.mode)}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.reference}</td>
                 </tr>
               ))}
@@ -264,9 +293,9 @@ export default function Payments() {
         </div>
       </Card>
 
-      <Modal open={open} onClose={resetModal} title="Record Payment">
+      <Modal open={open} onClose={resetModal} title="Record Payment" panelClassName="max-w-md">
         <form
-          className="space-y-3"
+          className="space-y-4 rounded-lg"
           onSubmit={(event) => {
             event.preventDefault();
             saveM.mutate({
@@ -293,7 +322,7 @@ export default function Payments() {
           </Select>
 
           {clientId && (
-            <div className="max-h-48 overflow-auto rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-800">
+            <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
               {unpaidRows.length === 0 ? (
                 <p className="text-zinc-500">No unpaid entries for this client.</p>
               ) : (
@@ -329,7 +358,7 @@ export default function Payments() {
           <Input placeholder="Reference" value={reference} onChange={(e) => setReference(e.target.value)} required />
           <Input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} required />
 
-          <div className="rounded-md bg-zinc-100 p-3 text-sm dark:bg-zinc-800">
+          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800/80">
             <p className="font-medium">FIFO allocation preview</p>
             <p className="mt-1">Allocated: {formatINR(Number(amount || 0) - allocationState.remaining)}</p>
             <p>Unallocated: {formatINR(allocationState.remaining)}</p>

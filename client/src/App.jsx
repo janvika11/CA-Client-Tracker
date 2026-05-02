@@ -60,7 +60,7 @@ function ProtectedLayout() {
 
   if (query.isLoading) {
     return (
-      <div className="flex min-h-screen bg-zinc-100 dark:bg-zinc-950">
+      <div className="flex min-h-screen bg-slate-50 dark:bg-zinc-950">
         <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:block">
           <div className="space-y-3 p-4">
             <SkeletonBlock className="h-12 w-full" />

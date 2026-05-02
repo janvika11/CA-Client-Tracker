@@ -12,6 +12,8 @@ import BillingEntry from './models/BillingEntry.js';
 import Payment from './models/Payment.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ca-tracker';
+/** Demo-only password (printed after seed). Prefer this over common passwords to reduce browser "breached password" warnings. */
+const DEMO_PASSWORD = 'CaTracker_Demo_2026!';
 
 async function seedDatabase() {
   try {
@@ -34,7 +36,7 @@ async function seedDatabase() {
     const demoUser = await User.create({
       name: 'Demo CA',
       email: 'demo@ca.com',
-      passwordHash: 'demo1234',
+      passwordHash: DEMO_PASSWORD,
       role: 'owner',
       firmDetails: {
         firmName: 'Demo CA Practice',
@@ -44,6 +46,7 @@ async function seedDatabase() {
     });
     await User.updateOne({ _id: demoUser._id }, { $set: { firmId: demoUser._id } });
     console.log('✓ Demo user created:', demoUser.email);
+    console.log('  → Password (demo only):', DEMO_PASSWORD);
 
     // Create 8 services
     console.log('Creating services...');
@@ -512,7 +515,7 @@ async function seedDatabase() {
     console.log(`✓ Created ${payments.length} payment records`);
 
     console.log('\n📊 Seeding Summary:');
-    console.log(`   - 1 Demo User (demo@ca.com / demo1234)`);
+    console.log(`   - 1 Demo User (demo@ca.com / ${DEMO_PASSWORD})`);
     console.log(`   - ${services.length} Services`);
     console.log(`   - ${clients.length} Clients`);
     console.log(`   - ${clientServices.length} Client-Service relationships`);

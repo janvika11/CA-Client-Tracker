@@ -6,7 +6,8 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, MapPin, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import { createClient, deleteClient, getClients, updateClient } from '../lib/api';
-import { formatClientStatus, formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
+import { sanitizeClientPayload } from '../lib/clientPayload';
+import { cn, formatClientStatus, formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -49,6 +50,19 @@ const defaultFormValues = {
   tags: '',
 };
 
+function clientLifecyclePillClass(status) {
+  switch (status) {
+    case 'active':
+      return 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-600/15 dark:bg-emerald-950/55 dark:text-emerald-300 dark:ring-emerald-500/25';
+    case 'inactive':
+      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-500/15 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-white/10';
+    case 'onboarding':
+      return 'bg-sky-100 text-sky-900 ring-1 ring-sky-600/20 dark:bg-sky-950/45 dark:text-sky-200 dark:ring-sky-500/25';
+    default:
+      return 'bg-zinc-100 text-zinc-700 ring-1 ring-zinc-500/10 dark:bg-zinc-800 dark:text-zinc-300';
+  }
+}
+
 function clientToFormValues(client) {
   if (!client || !client._id) return defaultFormValues;
   return {
@@ -66,31 +80,6 @@ function clientToFormValues(client) {
     pincode: client.pincode || '',
     status: client.status || 'active',
     tags: Array.isArray(client.tags) ? client.tags.join(', ') : String(client.tags || ''),
-  };
-}
-
-function buildPayload(values) {
-  const tags = String(values.tags || '')
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-  const pan = String(values.pan || '').trim().toUpperCase();
-  const gstin = String(values.gstin || '').trim().toUpperCase();
-  return {
-    name: values.name.trim(),
-    firmName: values.firmName?.trim() || undefined,
-    contactPerson: values.contactPerson?.trim() || undefined,
-    email: values.email.trim().toLowerCase(),
-    phone: values.phone?.trim() || undefined,
-    whatsapp: values.whatsapp?.trim() || undefined,
-    pan: pan || undefined,
-    gstin: gstin || undefined,
-    address: values.address?.trim() || undefined,
-    city: values.city?.trim() || undefined,
-    state: values.state?.trim() || undefined,
-    pincode: values.pincode?.trim() || undefined,
-    status: values.status,
-    tags,
   };
 }
 
@@ -188,7 +177,7 @@ export default function Clients() {
   };
 
   const onSubmitForm = (values) => {
-    const payload = buildPayload(values);
+    const payload = sanitizeClientPayload(values);
     if (editingId) updateM.mutate({ id: editingId, payload });
     else createM.mutate(payload);
   };
@@ -201,7 +190,7 @@ export default function Clients() {
   };
 
   const statClass =
-    'rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
+    'rounded-lg border border-slate-200/90 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
 
   const saving = createM.isPending || updateM.isPending;
   const formError = [createM.error, updateM.error]
@@ -245,8 +234,8 @@ export default function Clients() {
         </div>
       </div>
 
-      <Card className="overflow-hidden p-0">
-        <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
+      <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
+        <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
           <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
             <div className="relative xl:col-span-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
@@ -297,17 +286,17 @@ export default function Clients() {
           </div>
         </div>
 
-        <div className="max-h-[520px] overflow-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="sticky top-0 z-10 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/95 dark:text-zinc-400">
+        <div className="max-h-[560px] overflow-auto">
+          <table className="min-w-full table-fixed border-collapse text-left text-sm">
+            <thead className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/95 text-[11px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-3">#</th>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">City</th>
-                <th className="px-4 py-3">Tags</th>
-                <th className="px-4 py-3 text-right">Outstanding</th>
-                <th className="w-36 px-4 py-3 text-right">Actions</th>
+                <th className="w-10 px-3 py-3 pl-4">#</th>
+                <th className="min-w-[200px] px-3 py-3 xl:w-[28%]">Client</th>
+                <th className="w-28 px-3 py-3">Status</th>
+                <th className="w-36 px-3 py-3">City</th>
+                <th className="hidden px-3 py-3 md:table-cell md:w-[18%]">Tags</th>
+                <th className="w-36 px-3 py-3 text-right">Outstanding</th>
+                <th className="w-36 px-3 py-3 pr-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -315,11 +304,19 @@ export default function Clients() {
                 <tr>
                   <td className="px-6 py-16 text-center dark:text-zinc-300" colSpan={7}>
                     <div className="mx-auto flex max-w-md flex-col items-center">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                        <MapPin className="h-7 w-7 text-zinc-400" aria-hidden />
+                      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 ring-4 ring-emerald-100 dark:bg-emerald-950/40 dark:ring-emerald-900/30">
+                        <Users className="h-8 w-8 text-emerald-600 dark:text-emerald-400" aria-hidden />
                       </span>
-                      <p className="mt-4 text-base font-semibold text-zinc-900 dark:text-white">No clients match your filters</p>
-                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Clear search or add a new client from your practice workflow.</p>
+                      <p className="mt-5 text-lg font-semibold text-slate-900 dark:text-white">No clients here yet</p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-zinc-400">
+                        {search || status || city || tag || service
+                          ? 'Nothing matches those filters — try adjusting search or clearing filters.'
+                          : 'Create your first client to start billing and collections.'}
+                      </p>
+                      <Button className="mt-6 gap-2" type="button" onClick={openAdd}>
+                        <Plus className="h-4 w-4" aria-hidden />
+                        Add client
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -361,22 +358,27 @@ export default function Clients() {
                         </div>
                       </div>
                     </td>
-                    <td className={`px-4 ${compact ? 'py-2' : 'py-3.5'}`}>
-                      <span className="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    <td className={`px-3 ${compact ? 'py-2' : 'py-3.5'}`}>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+                          clientLifecyclePillClass(row.status)
+                        )}
+                      >
                         {formatClientStatus(row.status)}
                       </span>
                     </td>
-                    <td className={`px-4 text-zinc-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>{row.city || '—'}</td>
-                    <td className={`max-w-[140px] truncate px-4 text-zinc-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>
+                    <td className={`truncate px-3 text-slate-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>{row.city || '—'}</td>
+                    <td className={`hidden max-w-0 truncate px-3 text-slate-600 dark:text-zinc-400 md:table-cell ${compact ? 'py-2' : 'py-3.5'}`}>
                       {(row.tags || []).join(', ') || '—'}
                     </td>
                     <td
-                      className={`px-4 text-right font-semibold tabular-nums ${compact ? 'py-2' : 'py-3.5'} ${o > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+                      className={`px-3 pr-4 text-right text-sm font-bold tabular-nums ${compact ? 'py-2' : 'py-3.5'} ${o > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
                     >
                       {formatINR(o)}
                     </td>
-                    <td className={`px-4 text-right ${compact ? 'py-2' : 'py-3.5'}`}>
-                      <div className="flex justify-end gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <td className={cn('px-3 pr-4 text-right', compact ? 'py-2' : 'py-3.5')}>
+                      <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100">
                         <Link
                           to={`/clients/${id}`}
                           className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-emerald-600 dark:hover:text-emerald-300"

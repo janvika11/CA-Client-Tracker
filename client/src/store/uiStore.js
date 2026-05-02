@@ -4,7 +4,7 @@ import { DEFAULT_SELECT_FY } from '../lib/constants';
 export const useUIStore = create((set) => ({
   currentFY: DEFAULT_SELECT_FY,
   density: 'comfortable',
-  isDark: true,
+  isDark: false,
   searchOpen: false,
   setFY: (fy) => set({ currentFY: fy }),
   toggleDensity: () =>

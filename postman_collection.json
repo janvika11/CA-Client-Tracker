@@ -16,7 +16,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"demo@ca.com\",\n  \"password\": \"demo1234\"\n}"
+              "raw": "{\n  \"email\": \"demo@ca.com\",\n  \"password\": \"CaTracker_Demo_2026!\"\n}"
             },
             "url": "{{baseUrl}}/auth/login"
           }

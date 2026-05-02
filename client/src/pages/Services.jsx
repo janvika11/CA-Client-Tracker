@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createService, deleteService, getServices, updateService } from '../lib/api';
-import { formatBillingCycle } from '../lib/utils';
+import { cn, formatBillingCycle, formatINR } from '../lib/utils';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -28,6 +28,20 @@ const defaultValues = {
   defaultPrice: 0,
   billingCycle: 'monthly',
 };
+
+function serviceCategoryBadgeClass(cat) {
+  const map = {
+    GST: 'bg-emerald-100 text-emerald-900 ring-1 ring-emerald-600/15 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-500/25',
+    TDS: 'bg-sky-100 text-sky-900 ring-1 ring-sky-600/15 dark:bg-sky-950/50 dark:text-sky-200',
+    'Income Tax':
+      'bg-violet-100 text-violet-900 ring-1 ring-violet-600/15 dark:bg-violet-950/50 dark:text-violet-200',
+    ROC: 'bg-amber-100 text-amber-950 ring-1 ring-amber-600/20 dark:bg-amber-950/40 dark:text-amber-100',
+    Audit: 'bg-rose-100 text-rose-900 ring-1 ring-rose-600/15 dark:bg-rose-950/40 dark:text-rose-100',
+    Advisory: 'bg-teal-100 text-teal-900 ring-1 ring-teal-600/15 dark:bg-teal-950/40 dark:text-teal-100',
+    Other: 'bg-slate-200 text-slate-800 ring-1 ring-slate-500/15 dark:bg-zinc-700 dark:text-zinc-200',
+  };
+  return map[cat] || map.Other;
+}
 
 const BILLING_LABELS = [
   ['monthly', 'Monthly'],
@@ -108,7 +122,7 @@ export default function Services() {
         </Button>
       </div>
 
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {rows.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -122,26 +136,39 @@ export default function Services() {
           </div>
         ) : (
           <div className="overflow-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/90 dark:text-zinc-400">
+            <table className="min-w-full table-fixed text-left text-sm">
+              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400">
                 <tr>
                   <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Code</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Cycle</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="w-24 px-4 py-3">Code</th>
+                  <th className="w-36 px-4 py-3">Category</th>
+                  <th className="w-32 px-4 py-3">Cycle</th>
+                  <th className="w-32 px-4 py-3 text-right">Price</th>
+                  <th className="w-40 px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr
                     key={row._id || row.id}
-                    className="border-t border-zinc-200 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
+                    className="border-b border-slate-100 transition-colors hover:bg-emerald-50/25 dark:border-zinc-800 dark:hover:bg-emerald-950/15"
                   >
-                    <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.name}</td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.code}</td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.category}</td>
+                    <td className="truncate px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.name}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-400">{row.code}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+                          serviceCategoryBadgeClass(row.category)
+                        )}
+                      >
+                        {row.category}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatBillingCycle(row.billingCycle)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-zinc-900 dark:text-white">
+                      {formatINR(row.defaultPrice)}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button

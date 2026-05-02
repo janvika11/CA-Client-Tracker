@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { BarChart3, FileSpreadsheet, PieChart, TrendingUp } from 'lucide-react';
 import { getBillingEntries, getClients, getPayments, getServices } from '../lib/api';
 import { formatINR, formatINRForPdf, formatInvoiceStatus } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
@@ -109,9 +110,12 @@ export default function Reports() {
         </p>
       </div>
 
-      <Card className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium">Outstanding statement PDF per client</h2>
+      <Card className="space-y-3 shadow-card dark:shadow-card-dark">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            Outstanding statement
+          </h2>
           <div className="flex gap-2">
             <Select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
               <option value="">All clients</option>
@@ -150,9 +154,12 @@ export default function Reports() {
         </div>
       </Card>
 
-      <Card className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium">Receivables aging report (0-30 / 31-60 / 61-90 / 90+)</h2>
+      <Card className="space-y-2 shadow-card dark:shadow-card-dark">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <PieChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            Receivables aging (0–30 / 31–60 / 61–90 / 90+)
+          </h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => downloadExcel('aging-report', Object.entries(aging).map(([bucket, amount]) => ({ bucket, amount })))}>
               Export to Excel
@@ -172,9 +179,12 @@ export default function Reports() {
         </div>
       </Card>
 
-      <Card className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium">Service-wise revenue report</h2>
+      <Card className="space-y-2 shadow-card dark:shadow-card-dark">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            Service-wise revenue
+          </h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => downloadExcel('service-revenue', serviceRevenue)}>Export to Excel</Button>
             <Button onClick={() => downloadPDF('Service Revenue', ['Service', 'Revenue'], serviceRevenue.map((row) => [row.service, formatINRForPdf(row.revenue)]))}>
@@ -184,9 +194,12 @@ export default function Reports() {
         </div>
       </Card>
 
-      <Card className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium">FY P&amp;L summary</h2>
+      <Card className="space-y-2 shadow-card dark:shadow-card-dark">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            FY P&amp;L summary
+          </h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => downloadExcel('fy-pnl-summary', [pnlSummary])}>Export to Excel</Button>
             <Button onClick={() => downloadPDF('FY P&L Summary', ['FY', 'Billed', 'Collected', 'Outstanding'], [[pnlSummary.fy, formatINRForPdf(pnlSummary.billed), formatINRForPdf(pnlSummary.collected), formatINRForPdf(pnlSummary.outstanding)]])}>

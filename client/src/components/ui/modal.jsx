@@ -21,7 +21,7 @@ export function Modal({ open, onClose, title, children, panelClassName = '' }) {
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
             <X size={16} />
           </Button>
         </div>

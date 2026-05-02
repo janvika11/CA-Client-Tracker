@@ -56,16 +56,16 @@ const getMonthCell = (clientRow, month) => {
 const matrixCellFill = (status) => {
   switch (status) {
     case 'paid':
-      return 'bg-emerald-500 ring-1 ring-emerald-700/25 dark:bg-emerald-600 dark:ring-emerald-400/20';
+      return 'bg-emerald-600 ring-2 ring-emerald-700/35 shadow-sm dark:bg-emerald-500 dark:ring-emerald-300/35';
     case 'partially_paid':
     case 'partial':
-      return 'bg-amber-500 ring-1 ring-amber-700/25 dark:bg-amber-600 dark:ring-amber-400/20';
+      return 'bg-amber-500 ring-2 ring-amber-700/35 shadow-sm dark:bg-amber-600 dark:ring-amber-300/30';
     case 'overdue':
-      return 'bg-rose-500 ring-1 ring-rose-800/30 dark:bg-rose-600 dark:ring-rose-400/20';
+      return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-rose-500 dark:ring-rose-300/35';
     case 'waived':
-      return 'bg-zinc-400 ring-1 ring-zinc-600/20 dark:bg-zinc-500';
+      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-zinc-500 dark:ring-zinc-400/25';
     default:
-      return 'bg-zinc-400 ring-1 ring-zinc-600/20 dark:bg-zinc-500';
+      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-zinc-600 dark:ring-zinc-500/25';
   }
 };
 
@@ -78,12 +78,12 @@ function MatrixCell({ cell, onCellClick }) {
   return (
     <div className="group relative flex items-center justify-center py-0.5">
       {!cell ? (
-        <div className="h-11 w-[4.5rem] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800" aria-hidden />
+        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-zinc-800" aria-hidden />
       ) : (
         <>
           <button
             type="button"
-            className={`relative z-0 h-11 w-[4.5rem] shrink-0 rounded-lg transition duration-200 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-zinc-600/50 opacity-85 dark:border-zinc-400/40' : ''}`}
+            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-zinc-500/50' : ''}`}
             onClick={() => {
               if (!cell._placeholder) onCellClick();
             }}
@@ -101,7 +101,7 @@ function MatrixCell({ cell, onCellClick }) {
           />
           <div
             role="tooltip"
-            className="pointer-events-none invisible absolute bottom-full left-1/2 z-[60] mb-2 w-max min-w-[11rem] max-w-[15rem] -translate-x-1/2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left text-xs opacity-0 shadow-lg ring-1 ring-black/5 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-zinc-600 dark:bg-zinc-800 dark:ring-white/10"
+            className="pointer-events-none invisible absolute bottom-full left-1/2 z-[60] mb-2 w-max min-w-[12rem] max-w-[17rem] -translate-x-1/2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-xs opacity-0 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-zinc-600 dark:bg-zinc-900 dark:shadow-black/40 dark:ring-white/10"
           >
             {cell._placeholder ? (
               <>
@@ -191,7 +191,7 @@ export default function Billing() {
         </Button>
       </div>
 
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {empty ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -234,8 +234,11 @@ export default function Billing() {
                       key={clientRow.clientId || clientRow._id}
                       className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
                     >
-                      <td className="sticky left-0 z-10 whitespace-nowrap border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white">
-                        {clientRow.clientName || clientRow.name}
+                      <td
+                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                        title={clientRow.clientName || clientRow.name}
+                      >
+                        <span className="block truncate">{clientRow.clientName || clientRow.name}</span>
                       </td>
                       {MONTH_COLUMNS.map((m, colIndex) => {
                         let cell = getMonthCell(clientRow, m.month);
@@ -298,7 +301,7 @@ export default function Billing() {
       </Card>
 
       {selectedCell && !selectedCell._placeholder && (
-        <Card>
+        <Card className="shadow-card dark:shadow-card-dark">
           <h3 className="font-semibold text-zinc-900 dark:text-white">
             {selectedCell.clientName} — {selectedCell.month}
           </h3>

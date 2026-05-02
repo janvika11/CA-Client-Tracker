@@ -191,11 +191,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-1 border-b border-zinc-200 pb-6 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{welcomeDate}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Dashboard</h1>
-          <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{welcomeDate}</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
+          <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-zinc-400">
             Collections, receivables exposure, and recent practice activity at a glance.
           </p>
         </div>
@@ -205,7 +205,7 @@ export default function Dashboard() {
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Card key={kpi.label} className={`border-l-4 ${kpi.border} p-0`}>
+            <Card key={kpi.label} className={`border-l-4 ${kpi.border} p-0 shadow-card dark:shadow-card-dark`}>
               <div className="flex items-start gap-4 p-4">
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${kpi.iconWrap}`}>
                   <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -225,7 +225,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="h-[340px]">
+        <Card className="h-[340px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Monthly billed vs collected</h2>
@@ -245,7 +245,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </Card>
 
-        <Card className="h-[340px]">
+        <Card className="h-[340px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Outstanding aging</h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">By days past due</p>
@@ -272,7 +272,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="h-[380px]">
+        <Card className="h-[380px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Top clients by outstanding</h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Highest receivable balance</p>
@@ -287,7 +287,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </Card>
 
-        <Card className="h-[380px]">
+        <Card className="h-[380px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Service revenue (collected)</h2>
@@ -309,7 +309,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-card dark:shadow-card-dark">
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Recent activity</h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">Payments and overdue notices</p>
 
@@ -331,7 +331,7 @@ export default function Dashboard() {
               return (
                 <li key={`${item.type}-${index}`} className="relative flex gap-4 pb-6 last:pb-0">
                   <span
-                    className={`relative z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ring-4 ring-white dark:ring-zinc-900 ${tone}`}
+                    className={`relative z-[1] flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold shadow-md ring-4 ring-white dark:ring-zinc-900 ${tone}`}
                   >
                     {initials}
                   </span>

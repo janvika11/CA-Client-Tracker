@@ -43,18 +43,27 @@ const chartTooltipLight = {
 const chartTooltipDark = {
   contentStyle: {
     borderRadius: '8px',
-    border: '1px solid rgb(63 63 70)',
-    backgroundColor: 'rgb(39 39 42)',
-    color: 'rgb(244 244 245)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+    border: '1px solid #334155',
+    backgroundColor: '#1e293b',
+    color: '#f1f5f9',
+    boxShadow: '0 12px 48px rgba(15,23,42,0.55)',
     fontSize: '12px',
   },
-  labelStyle: { fontWeight: 600, marginBottom: 4, color: 'rgb(244 244 245)' },
+  labelStyle: { fontWeight: 600, marginBottom: 4, color: '#f1f5f9' },
 };
+
+const legendStyleLight = { fontSize: 12 };
+
+const legendStyleDark = { fontSize: 12, color: '#94a3b8' };
+
+const billedBarDark = '#5c6e84';
 
 export default function Dashboard() {
   const isDark = useUIStore((s) => s.isDark);
   const tooltipProps = isDark ? chartTooltipDark : chartTooltipLight;
+  const legendProps = isDark ? legendStyleDark : legendStyleLight;
+  const axisStroke = isDark ? '#475569' : '#a1a1aa';
+  const tickFill = isDark ? '#94a3b8' : '#52525b';
   const clients = useQuery({ queryKey: ['clients', 'stats'], queryFn: () => getClients({ limit: 500 }) });
   const payments = useQuery({ queryKey: ['payments', 'dashboard'], queryFn: () => getPayments({ limit: 200 }) });
   const billings = useQuery({ queryKey: ['billing', 'dashboard'], queryFn: () => getBillingEntries({ limit: 1000 }) });
@@ -163,21 +172,24 @@ export default function Dashboard() {
       value: formatINR(totalOutstanding),
       border: 'border-l-rose-500 dark:border-l-rose-400',
       icon: AlertTriangle,
-      iconWrap: 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300',
+      iconWrap:
+        'bg-rose-100 text-rose-700 dark:bg-dm-bg dark:text-rose-300 dark:shadow-[inset_0_0_0_1px_rgba(244,63,94,0.25)]',
     },
     {
       label: 'Collected this month',
       value: formatINR(collectedThisMonth),
       border: 'border-l-emerald-600 dark:border-l-emerald-400',
       icon: Wallet,
-      iconWrap: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
+      iconWrap:
+        'bg-emerald-100 text-emerald-800 dark:bg-dm-bg dark:text-emerald-300 dark:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.28)]',
     },
     {
       label: 'Overdue 30 / 60 / 90+ days',
       value: `${formatINR(overdueAges.over30)} · ${formatINR(overdueAges.over60)} · ${formatINR(overdueAges.over90)}`,
       border: 'border-l-amber-500 dark:border-l-amber-400',
       icon: TrendingUp,
-      iconWrap: 'bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-200',
+      iconWrap:
+        'bg-amber-100 text-amber-900 dark:bg-dm-bg dark:text-amber-300 dark:shadow-[inset_0_0_0_1px_rgba(245,158,11,0.28)]',
       small: true,
     },
     {
@@ -185,7 +197,7 @@ export default function Dashboard() {
       value: String(activeCount),
       border: 'border-l-sky-600 dark:border-l-sky-400',
       icon: Users,
-      iconWrap: 'bg-sky-100 text-sky-800 dark:bg-sky-950/80 dark:text-sky-300',
+      iconWrap: 'bg-sky-100 text-sky-800 dark:bg-dm-bg dark:text-sky-300 dark:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.28)]',
     },
   ];
 
@@ -205,7 +217,7 @@ export default function Dashboard() {
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Card key={kpi.label} className={`border-l-4 ${kpi.border} p-0 shadow-card dark:shadow-card-dark`}>
+            <Card key={kpi.label} className={`border-l-4 ${kpi.border} p-0 shadow-card`}>
               <div className="flex items-start gap-4 p-4">
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${kpi.iconWrap}`}>
                   <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -231,15 +243,19 @@ export default function Dashboard() {
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Monthly billed vs collected</h2>
               <p className="text-xs text-zinc-500 dark:text-dm-muted">Last six months</p>
             </div>
-            <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden />
+            <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
           <ResponsiveContainer width="100%" height="88%">
             <BarChart data={monthlyChart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="rgb(161 161 170)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="rgb(161 161 170)" tickFormatter={(v) => (v >= 100000 ? `${Math.round(v / 1000)}k` : `${v}`)} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
+              <YAxis
+                tick={{ fontSize: 11, fill: tickFill }}
+                stroke={axisStroke}
+                tickFormatter={(v) => (v >= 100000 ? `${Math.round(v / 1000)}k` : `${v}`)}
+              />
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar name="Billed" dataKey="Billed" fill="#64748b" radius={[4, 4, 0, 0]} />
+              <Legend wrapperStyle={legendProps} />
+              <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#64748b'} radius={[4, 4, 0, 0]} />
               <Bar name="Collected" dataKey="Collected" fill="#059669" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -265,7 +281,7 @@ export default function Dashboard() {
                 ))}
               </Pie>
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
+              <Legend verticalAlign="bottom" height={28} wrapperStyle={legendProps} />
             </PieChart>
           </ResponsiveContainer>
         </Card>
@@ -279,8 +295,13 @@ export default function Dashboard() {
           </div>
           <ResponsiveContainer width="100%" height="88%">
             <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
-              <XAxis type="number" tick={{ fontSize: 11 }} stroke="rgb(161 161 170)" tickFormatter={(v) => formatINR(v)} />
-              <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11 }} stroke="rgb(161 161 170)" />
+              <XAxis
+                type="number"
+                tick={{ fontSize: 11, fill: tickFill }}
+                stroke={axisStroke}
+                tickFormatter={(v) => formatINR(v)}
+              />
+              <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
               <Bar name="Outstanding" dataKey="outstanding" fill="#f43f5e" radius={[0, 4, 4, 0]} barSize={14} />
             </BarChart>
@@ -293,7 +314,7 @@ export default function Dashboard() {
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Service revenue (collected)</h2>
               <p className="text-xs text-zinc-500 dark:text-dm-muted">By service line</p>
             </div>
-            <IndianRupee className="h-4 w-4 text-zinc-400" aria-hidden />
+            <IndianRupee className="h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
           <ResponsiveContainer width="100%" height="88%">
             <PieChart>
@@ -303,7 +324,7 @@ export default function Dashboard() {
                 ))}
               </Pie>
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 11 }} />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={isDark ? { ...legendProps, fontSize: 11 } : { fontSize: 11 }} />
             </PieChart>
           </ResponsiveContainer>
         </Card>

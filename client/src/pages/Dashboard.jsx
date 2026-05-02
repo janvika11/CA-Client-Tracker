@@ -107,7 +107,7 @@ export default function Dashboard() {
   const monthKeys = Array.from({ length: 6 }).map((_, index) => now.subtract(5 - index, 'month').format('MMM YY'));
   const monthlyMap = Object.fromEntries(monthKeys.map((key) => [key, { month: key, Billed: 0, Collected: 0 }]));
   billingRows.forEach((row) => {
-    const key = dayjs(row.createdAt || row.dueDate).format('MMM YY');
+    const key = dayjs(row.dueDate || row.createdAt).format('MMM YY');
     if (monthlyMap[key]) monthlyMap[key].Billed += Number(row.amount || 0);
   });
   paymentRows.forEach((row) => {

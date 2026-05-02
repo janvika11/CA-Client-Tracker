@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarRange, Receipt } from 'lucide-react';
 import { generateBilling, getBillingMatrix } from '../lib/api';
 import { MONTH_COLUMNS } from '../lib/constants';
-import { formatDate, formatINR } from '../lib/utils';
+import { formatDate, formatINR, formatInvoiceStatus } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -92,7 +92,7 @@ function MatrixCell({ cell, onCellClick }) {
                 ? 'Pending, no bill for this month'
                 : [
                     formatINR(cell.amount),
-                    (cell.status || '').replace(/_/g, ' '),
+                    formatInvoiceStatus(cell.status),
                     cell.dueDate ? `Due ${formatDate(cell.dueDate)}` : '',
                   ]
                     .filter(Boolean)
@@ -111,7 +111,7 @@ function MatrixCell({ cell, onCellClick }) {
             ) : (
               <>
                 <p className="text-[13px] font-bold tabular-nums text-zinc-900 dark:text-white">{formatINR(cell.amount)}</p>
-                <p className="mt-0.5 capitalize text-zinc-600 dark:text-zinc-300">{(cell.status || '').replace(/_/g, ' ')}</p>
+                <p className="mt-0.5 text-zinc-600 dark:text-zinc-300">{formatInvoiceStatus(cell.status)}</p>
                 {cell.dueDate ? (
                   <p className="mt-1 text-zinc-500 dark:text-zinc-400">Due {formatDate(cell.dueDate)}</p>
                 ) : null}
@@ -304,7 +304,7 @@ export default function Billing() {
           </h3>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             Total: <span className="font-semibold text-zinc-900 dark:text-white">{formatINR(selectedCell.amount)}</span> · Status:{' '}
-            <span className="capitalize">{selectedCell.status?.replace(/_/g, ' ')}</span> · Due: {formatDate(selectedCell.dueDate)}
+            <span>{formatInvoiceStatus(selectedCell.status)}</span> · Due: {formatDate(selectedCell.dueDate)}
           </p>
           {selectedCell._rows?.length > 1 && (
             <ul className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-zinc-700">
@@ -312,7 +312,8 @@ export default function Billing() {
                 <li key={`${row.service}-${idx}`} className="flex justify-between gap-4 text-zinc-700 dark:text-zinc-300">
                   <span>{row.service}</span>
                   <span className="tabular-nums font-medium">
-                    {formatINR(row.amount)} <span className="text-xs font-normal text-zinc-500">({row.status})</span>
+                    {formatINR(row.amount)}{' '}
+                    <span className="text-xs font-normal text-zinc-500">({formatInvoiceStatus(row.status)})</span>
                   </span>
                 </li>
               ))}

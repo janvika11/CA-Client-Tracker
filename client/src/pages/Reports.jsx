@@ -5,7 +5,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getBillingEntries, getClients, getPayments, getServices } from '../lib/api';
-import { formatINR } from '../lib/utils';
+import { formatINR, formatINRForPdf, formatInvoiceStatus } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -135,11 +135,11 @@ export default function Reports() {
                   clientStatementRows.map((row) => [
                     row.client,
                     row.service,
-                    formatINR(row.amount),
-                    formatINR(row.paid),
-                    formatINR(row.balance),
+                    formatINRForPdf(row.amount),
+                    formatINRForPdf(row.paid),
+                    formatINRForPdf(row.balance),
                     row.dueDate,
-                    row.status,
+                    formatInvoiceStatus(row.status),
                   ])
                 )
               }
@@ -157,7 +157,7 @@ export default function Reports() {
             <Button variant="outline" onClick={() => downloadExcel('aging-report', Object.entries(aging).map(([bucket, amount]) => ({ bucket, amount })))}>
               Export to Excel
             </Button>
-            <Button onClick={() => downloadPDF('Receivables Aging', ['Bucket', 'Amount'], Object.entries(aging).map(([bucket, amount]) => [bucket, formatINR(amount)]))}>
+            <Button onClick={() => downloadPDF('Receivables Aging', ['Bucket', 'Amount'], Object.entries(aging).map(([bucket, amount]) => [bucket, formatINRForPdf(amount)]))}>
               Export to PDF
             </Button>
           </div>
@@ -177,7 +177,7 @@ export default function Reports() {
           <h2 className="font-medium">Service-wise revenue report</h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => downloadExcel('service-revenue', serviceRevenue)}>Export to Excel</Button>
-            <Button onClick={() => downloadPDF('Service Revenue', ['Service', 'Revenue'], serviceRevenue.map((row) => [row.service, formatINR(row.revenue)]))}>
+            <Button onClick={() => downloadPDF('Service Revenue', ['Service', 'Revenue'], serviceRevenue.map((row) => [row.service, formatINRForPdf(row.revenue)]))}>
               Export to PDF
             </Button>
           </div>
@@ -189,7 +189,7 @@ export default function Reports() {
           <h2 className="font-medium">FY P&amp;L summary</h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => downloadExcel('fy-pnl-summary', [pnlSummary])}>Export to Excel</Button>
-            <Button onClick={() => downloadPDF('FY P&L Summary', ['FY', 'Billed', 'Collected', 'Outstanding'], [[pnlSummary.fy, formatINR(pnlSummary.billed), formatINR(pnlSummary.collected), formatINR(pnlSummary.outstanding)]])}>
+            <Button onClick={() => downloadPDF('FY P&L Summary', ['FY', 'Billed', 'Collected', 'Outstanding'], [[pnlSummary.fy, formatINRForPdf(pnlSummary.billed), formatINRForPdf(pnlSummary.collected), formatINRForPdf(pnlSummary.outstanding)]])}>
               Export to PDF
             </Button>
           </div>

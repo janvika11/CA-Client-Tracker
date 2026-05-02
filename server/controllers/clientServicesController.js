@@ -200,7 +200,7 @@ export const getClientServices = async (req, res, next) => {
     const services = await ClientService.find({
       clientId,
       firmId: req.tenantFirmId
-    }).populate('serviceId', 'name code category defaultPrice');
+    }).populate('serviceId', 'name code category defaultPrice billingCycle');
 
     res.json({
       success: true,

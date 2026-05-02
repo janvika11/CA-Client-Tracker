@@ -33,6 +33,8 @@ export const getClient = async (clientId) => {
   return d?.client ?? d;
 };
 export const createClient = async (payload) => unwrap(await api.post('/clients', payload));
+export const updateClient = async ({ id, payload }) => unwrap(await api.put(`/clients/${id}`, payload));
+export const deleteClient = async (id) => unwrap(await api.delete(`/clients/${id}`));
 export const getServices = async (params) =>
   withItems(unwrap(await api.get('/services', { params })), ['services']);
 export const createService = async (payload) => unwrap(await api.post('/services', payload));

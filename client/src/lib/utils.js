@@ -39,6 +39,64 @@ export const formatINR = (amount = 0) =>
     precision: 0,
   });
 
+/** jsPDF default fonts do not render ₹ reliably — use in PDFs only. */
+export const formatINRForPdf = (amount = 0) =>
+  String(formatINR(amount))
+    .replace(/\u20b9/g, 'Rs.')
+    .replace(/₹/g, 'Rs.');
+
+const titleCaseWords = (s) =>
+  String(s || '')
+    .replace(/_/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+
+/** Billing / invoice status for tables and pills. */
+export const formatInvoiceStatus = (status) => {
+  const map = {
+    paid: 'Paid',
+    partially_paid: 'Partially Paid',
+    partial: 'Partially Paid',
+    pending: 'Pending',
+    overdue: 'Overdue',
+    waived: 'Waived',
+  };
+  if (!status) return '—';
+  return map[status] || titleCaseWords(status);
+};
+
+/** Client lifecycle (active / inactive / onboarding). */
+export const formatClientStatus = (status) => {
+  const map = { active: 'Active', inactive: 'Inactive', onboarding: 'Onboarding' };
+  if (!status) return '—';
+  return map[status] || titleCaseWords(status);
+};
+
+export const formatPaymentMode = (mode) => {
+  const map = {
+    cash: 'Cash',
+    upi: 'UPI',
+    bank_transfer: 'Bank Transfer',
+    cheque: 'Cheque',
+  };
+  if (!mode) return '—';
+  return map[mode] || titleCaseWords(mode);
+};
+
+export const formatBillingCycle = (cycle) => {
+  const map = {
+    monthly: 'Monthly',
+    quarterly: 'Quarterly',
+    half_yearly: 'Half Yearly',
+    annual: 'Annual',
+    one_time: 'One Time',
+  };
+  if (!cycle) return '—';
+  return map[cycle] || titleCaseWords(cycle);
+};
+
 export const formatDate = (value) => {
   if (!value) return '-';
   const date = dayjs(value);

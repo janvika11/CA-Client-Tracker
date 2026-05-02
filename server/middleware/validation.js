@@ -1,3 +1,5 @@
+import { ZodError } from 'zod';
+
 export const validateRequest = (schema) => {
   return async (req, res, next) => {
     try {
@@ -5,11 +7,11 @@ export const validateRequest = (schema) => {
       req.validatedData = validated;
       next();
     } catch (error) {
-      if (error.errors) {
+      if (error instanceof ZodError) {
         return res.status(400).json({
           success: false,
           message: 'Validation error',
-          errors: error.errors.map((e) => ({
+          errors: error.issues.map((e) => ({
             field: e.path.join('.'),
             message: e.message
           }))
@@ -30,11 +32,11 @@ export const validateQuery = (schema) => {
       req.validatedQuery = validated;
       next();
     } catch (error) {
-      if (error.errors) {
+      if (error instanceof ZodError) {
         return res.status(400).json({
           success: false,
           message: 'Query validation error',
-          errors: error.errors.map((e) => ({
+          errors: error.issues.map((e) => ({
             field: e.path.join('.'),
             message: e.message
           }))

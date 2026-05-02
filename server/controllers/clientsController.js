@@ -1,4 +1,6 @@
+import mongoose from 'mongoose';
 import Client from '../models/Client.js';
+import BillingEntry from '../models/BillingEntry.js';
 
 export const listClients = async (req, res, next) => {
   try {
@@ -38,15 +40,34 @@ export const listClients = async (req, res, next) => {
       Client.countDocuments(query)
     ]);
 
+    let clientsOut = clients;
+    if (clients.length > 0) {
+      const clientIds = clients.map((c) => c._id);
+      const balances = await BillingEntry.aggregate([
+        {
+          $match: {
+            firmId: new mongoose.Types.ObjectId(String(req.tenantFirmId)),
+            clientId: { $in: clientIds }
+          }
+        },
+        { $group: { _id: '$clientId', outstanding: { $sum: '$balance' } } }
+      ]);
+      const balanceById = new Map(balances.map((b) => [String(b._id), Number(b.outstanding) || 0]));
+      clientsOut = clients.map((c) => ({
+        ...c,
+        outstanding: balanceById.get(String(c._id)) || 0
+      }));
+    }
+
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
-      console.log('[GET /api/clients] clients returned:', clients.length, 'total matching firm:', total);
+      console.log('[GET /api/clients] clients returned:', clientsOut.length, 'total matching firm:', total);
     }
 
     res.json({
       success: true,
       data: {
-        clients,
+        clients: clientsOut,
         pagination: {
           page,
           limit,

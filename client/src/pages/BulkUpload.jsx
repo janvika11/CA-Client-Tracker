@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload } from 'lucide-react';
 import { createClient } from '../lib/api';
+import { formatClientStatus } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Select } from '../components/ui/select';
@@ -37,6 +38,16 @@ function parseRows(file) {
   });
 }
 
+function rowApiMessage(error) {
+  const data = error?.response?.data;
+  if (!data) return error?.message || 'Request failed';
+  if (typeof data.message === 'string') return data.message;
+  if (Array.isArray(data.errors)) {
+    return data.errors.map((e) => e?.message || e).filter(Boolean).join('; ') || 'Validation failed';
+  }
+  return 'Request failed';
+}
+
 export default function BulkUpload() {
   const queryClient = useQueryClient();
   const [rows, setRows] = useState([]);
@@ -53,8 +64,14 @@ export default function BulkUpload() {
           normalized[key] = source ? row[source] : '';
         });
         const errors = [];
-        if (!normalized.name) errors.push('Name required');
-        if (!normalized.email || !String(normalized.email).includes('@')) errors.push('Valid email required');
+        if (!String(normalized.name || '').trim()) errors.push('Name required');
+        if (!String(normalized.email || '').trim().includes('@')) errors.push('Valid email required');
+        const st = String(normalized.status || '').trim().toLowerCase();
+        if (st && !['active', 'inactive', 'onboarding'].includes(st)) errors.push('Status must be active, inactive, or onboarding');
+        const pan = String(normalized.pan || '').trim().toUpperCase();
+        if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) errors.push('Invalid PAN format');
+        const gst = String(normalized.gstin || '').trim().toUpperCase();
+        if (gst && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gst)) errors.push('Invalid GSTIN format');
         return { index, normalized, errors };
       }),
     [rows, mapping]
@@ -65,26 +82,40 @@ export default function BulkUpload() {
       let success = 0;
       let skipped = 0;
       let failed = 0;
+      const failures = [];
       for (const item of validated) {
         if (item.errors.length) {
           skipped += 1;
           continue;
         }
+        const tags = String(item.normalized.tags || '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean);
+        const statusRaw = String(item.normalized.status || '').trim().toLowerCase();
+        const status = ['active', 'inactive', 'onboarding'].includes(statusRaw) ? statusRaw : 'active';
+        const pan = String(item.normalized.pan || '').trim().toUpperCase();
+        const gstin = String(item.normalized.gstin || '').trim().toUpperCase();
+        const payload = {
+          name: String(item.normalized.name || '').trim(),
+          email: String(item.normalized.email || '').trim().toLowerCase(),
+          status,
+          tags,
+          city: String(item.normalized.city || '').trim() || undefined,
+        };
+        const phone = String(item.normalized.phone || '').trim();
+        if (phone) payload.phone = phone;
+        if (pan && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) payload.pan = pan;
+        if (gstin && /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin)) payload.gstin = gstin;
         try {
-          await createClient({
-            ...item.normalized,
-            status: item.normalized.status || 'active',
-            tags: String(item.normalized.tags || '')
-              .split(',')
-              .map((value) => value.trim())
-              .filter(Boolean),
-          });
+          await createClient(payload);
           success += 1;
         } catch (error) {
           failed += 1;
+          failures.push({ row: item.index + 1, reason: rowApiMessage(error) });
         }
       }
-      return { success, skipped, failed };
+      return { success, skipped, failed, failures };
     },
     onSuccess: (result) => {
       setSummary(result);
@@ -102,6 +133,7 @@ export default function BulkUpload() {
       initialMapping[target] = match || '';
     });
     setMapping(initialMapping);
+    setSummary(null);
   };
 
   const downloadTemplate = () => {
@@ -159,7 +191,11 @@ export default function BulkUpload() {
                 <span className="w-24 text-sm">{target}</span>
                 <Select value={mapping[target] || ''} onChange={(e) => setMapping((prev) => ({ ...prev, [target]: e.target.value }))}>
                   <option value="">-- Unmapped --</option>
-                  {headers.map((header) => <option key={header} value={header}>{header}</option>)}
+                  {headers.map((header) => (
+                    <option key={header} value={header}>
+                      {header}
+                    </option>
+                  ))}
                 </Select>
               </div>
             ))}
@@ -188,11 +224,14 @@ export default function BulkUpload() {
               </thead>
               <tbody>
                 {validated.map((item) => (
-                  <tr key={item.index} className={`border-t border-zinc-200 dark:border-zinc-800 ${item.errors.length ? 'bg-rose-500/10' : ''}`}>
+                  <tr
+                    key={item.index}
+                    className={`border-t border-zinc-200 dark:border-zinc-800 ${item.errors.length ? 'bg-rose-500/10' : ''}`}
+                  >
                     <td className="p-2">{item.index + 1}</td>
                     <td className="p-2">{item.normalized.name || '-'}</td>
                     <td className="p-2">{item.normalized.email || '-'}</td>
-                    <td className="p-2">{item.normalized.status || '-'}</td>
+                    <td className="p-2">{formatClientStatus(item.normalized.status || 'active')}</td>
                     <td className="p-2 text-rose-500">{item.errors.join(', ') || 'OK'}</td>
                   </tr>
                 ))}
@@ -204,10 +243,19 @@ export default function BulkUpload() {
 
       {summary && (
         <Card className="text-sm">
-          <p>Upload summary</p>
+          <p className="font-medium">Upload summary</p>
           <p className="mt-1 text-emerald-600">Success: {summary.success}</p>
           <p className="text-amber-500">Skipped: {summary.skipped}</p>
           <p className="text-rose-500">Failed: {summary.failed}</p>
+          {summary.failures?.length > 0 && (
+            <ul className="mt-3 list-inside list-disc space-y-1 text-rose-700 dark:text-rose-300">
+              {summary.failures.map((f) => (
+                <li key={f.row}>
+                  Row {f.row}: {f.reason}
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       )}
     </div>

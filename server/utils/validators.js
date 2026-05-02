@@ -28,48 +28,39 @@ export const serviceSchema = z.object({
     .min(2, 'Service code required')
     .regex(/^[A-Z0-9\-]+$/, 'Code must be uppercase alphanumeric with hyphens'),
   category: z.enum(['GST', 'TDS', 'Income Tax', 'ROC', 'Audit', 'Advisory', 'Other']),
-  defaultPrice: z
-    .number()
-    .positive('Price must be greater than 0')
-    .finite('Price must be a valid number'),
+  defaultPrice: z.coerce.number().min(0, 'Price cannot be negative').finite('Price must be a valid number'),
   billingCycle: z.enum(['monthly', 'quarterly', 'half_yearly', 'annual', 'one_time']),
   description: z.string().optional(),
   isActive: z.boolean().default(true)
 });
 
+const emptyToUndefined = (val) => {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val === 'string' && val.trim() === '') return undefined;
+  return typeof val === 'string' ? val.trim() : val;
+};
+
 // Client Validators
 export const clientSchema = z.object({
   name: z.string().min(2, 'Client name required'),
-  firmName: z.string().optional(),
-  contactPerson: z.string().optional(),
+  firmName: z.preprocess(emptyToUndefined, z.string().optional()),
+  contactPerson: z.preprocess(emptyToUndefined, z.string().optional()),
   email: z.string().email('Invalid email'),
-  phone: z
-    .string()
-    .regex(/^\+?[0-9\s\-()]{10,}$/, 'Invalid phone format')
-    .optional(),
-  whatsapp: z
-    .string()
-    .regex(/^\+?[0-9]{10,}$/, 'Invalid WhatsApp number')
-    .optional(),
-  gstin: z
-    .string()
-    .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format')
-    .optional()
-    .or(z.literal('')),
-  pan: z
-    .string()
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN format')
-    .optional()
-    .or(z.literal('')),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  pincode: z
-    .string()
-    .regex(/^[0-9]{6}$/, 'Pincode must be 6 digits')
-    .optional(),
+  phone: z.preprocess(emptyToUndefined, z.string().regex(/^\+?[0-9\s\-()]{10,}$/, 'Invalid phone format').optional()),
+  whatsapp: z.preprocess(emptyToUndefined, z.string().regex(/^\+?[0-9]{10,}$/, 'Invalid WhatsApp number').optional()),
+  gstin: z.preprocess(emptyToUndefined, z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format').optional()),
+  pan: z.preprocess((v) => {
+    if (v === undefined || v === null) return undefined;
+    const raw = String(v).trim();
+    if (raw === '') return undefined;
+    return raw.toUpperCase();
+  }, z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN format').optional()),
+  address: z.preprocess(emptyToUndefined, z.string().optional()),
+  city: z.preprocess(emptyToUndefined, z.string().optional()),
+  state: z.preprocess(emptyToUndefined, z.string().optional()),
+  pincode: z.preprocess(emptyToUndefined, z.string().regex(/^[0-9]{6}$/, 'Pincode must be 6 digits').optional()),
   status: z.enum(['active', 'inactive', 'onboarding']).default('onboarding'),
-  notes: z.string().optional(),
+  notes: z.preprocess(emptyToUndefined, z.string().optional()),
   tags: z.array(z.string()).optional()
 });
 

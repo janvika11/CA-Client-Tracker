@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
-import { useQueries } from '@tanstack/react-query';
-import { getBillingEntries, getClient, getClientServices, getPayments } from '../lib/api';
-import { formatDate, formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
+import { getBillingEntries, getClient, getClientServices, getPayments, updateClient } from '../lib/api';
+import {
+  formatBillingCycle,
+  formatDate,
+  formatINR,
+  formatInvoiceStatus,
+  formatPaymentMode,
+  getAvatarToneClass,
+  getInitials,
+} from '../lib/utils';
 import { Card } from '../components/ui/card';
 import { SkeletonBlock } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
@@ -13,6 +21,8 @@ const tabs = ['Overview', 'Services', 'Billing History', 'Payments', 'Notes'];
 export default function ClientDetail() {
   const { clientId } = useParams();
   const [tab, setTab] = useState('Overview');
+  const [notesDraft, setNotesDraft] = useState('');
+  const queryClient = useQueryClient();
 
   const [clientQ, servicesQ, billingQ, paymentsQ] = useQueries({
     queries: [
@@ -21,6 +31,24 @@ export default function ClientDetail() {
       { queryKey: ['billing', 'client', clientId], queryFn: () => getBillingEntries({ clientId, limit: 200 }) },
       { queryKey: ['payments', 'client', clientId], queryFn: () => getPayments({ clientId, limit: 200 }) },
     ],
+  });
+
+  const client = clientQ.data ?? {};
+
+  useEffect(() => {
+    if (client?.notes !== undefined) setNotesDraft(client.notes || '');
+  }, [clientId, client?.notes]);
+
+  const saveNotesM = useMutation({
+    mutationFn: () =>
+      updateClient({
+        id: clientId,
+        payload: { notes: notesDraft },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
   });
 
   if (clientQ.isLoading) {
@@ -37,10 +65,9 @@ export default function ClientDetail() {
     );
   }
 
-  const client = clientQ.data?.data || clientQ.data || {};
-  const services = servicesQ.data?.items || servicesQ.data || [];
-  const billings = billingQ.data?.items || billingQ.data || [];
-  const payments = paymentsQ.data?.items || paymentsQ.data || [];
+  const services = servicesQ.data?.items || servicesQ.data?.services || [];
+  const billings = billingQ.data?.billings || billingQ.data?.items || billingQ.data || [];
+  const payments = paymentsQ.data?.payments || paymentsQ.data?.items || paymentsQ.data || [];
 
   const totalBilled = billings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const collected = payments.reduce((sum, row) => sum + Number(row.amount || 0), 0);
@@ -138,18 +165,56 @@ export default function ClientDetail() {
           </div>
         )}
         {tab === 'Services' && (
-          <ul className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
-            {services.length === 0 ? (
-              <li className="py-8 text-center text-zinc-500">No services linked.</li>
-            ) : (
-              services.map((s) => (
-                <li key={s._id || s.id} className="flex justify-between py-3 font-medium text-zinc-800 dark:text-zinc-200">
-                  <span>{s.service?.name || s.name}</span>
-                  <span className="tabular-nums text-zinc-600 dark:text-zinc-400">{formatINR(s.customPrice || s.price)}</span>
-                </li>
-              ))
-            )}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-zinc-200 text-xs font-semibold uppercase text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                <tr>
+                  <th className="py-2 pr-4">Service name</th>
+                  <th className="py-2 pr-4 text-right">Custom price</th>
+                  <th className="py-2 pr-4">Billing cycle</th>
+                  <th className="py-2 pr-4">Start date</th>
+                  <th className="py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {services.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-zinc-500">
+                      No services linked.
+                    </td>
+                  </tr>
+                ) : (
+                  services.map((s) => {
+                    const svc = s.serviceId || s.service;
+                    const svcName = svc?.name || '—';
+                    const cycle = s.billingCycle || svc?.billingCycle;
+                    const active = s.isActive !== false;
+                    return (
+                      <tr key={s._id || s.id}>
+                        <td className="py-3 font-medium text-zinc-900 dark:text-white">{svcName}</td>
+                        <td className="py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-200">
+                          {formatINR(s.customPrice ?? svc?.defaultPrice)}
+                        </td>
+                        <td className="py-3 text-zinc-600 dark:text-zinc-400">{formatBillingCycle(cycle)}</td>
+                        <td className="py-3 text-zinc-600 dark:text-zinc-400">{formatDate(s.startDate)}</td>
+                        <td className="py-3">
+                          <span
+                            className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${
+                              active
+                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                                : 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-300'
+                            }`}
+                          >
+                            {active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'Billing History' && (
           <ul className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
@@ -160,7 +225,9 @@ export default function ClientDetail() {
                 <li key={b._id || b.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <span className="text-zinc-600 dark:text-zinc-400">{formatDate(b.dueDate)}</span>
                   <span className="font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(b.amount)}</span>
-                  <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">{b.status}</span>
+                  <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    {formatInvoiceStatus(b.status)}
+                  </span>
                 </li>
               ))
             )}
@@ -175,13 +242,34 @@ export default function ClientDetail() {
                 <li key={p._id || p.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <span className="text-zinc-600 dark:text-zinc-400">{formatDate(p.receivedOn)}</span>
                   <span className="font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(p.amount)}</span>
-                  <span className="text-xs uppercase text-zinc-500">{p.mode || '—'}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">{formatPaymentMode(p.mode)}</span>
                 </li>
               ))
             )}
           </ul>
         )}
-        {tab === 'Notes' && <p className="text-sm text-zinc-500 dark:text-zinc-400">Notes and engagement diary — coming soon.</p>}
+        {tab === 'Notes' && (
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Client notes</label>
+            <textarea
+              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              value={notesDraft}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              placeholder="Engagement notes, reminders, or context for this client…"
+            />
+            {saveNotesM.error?.response?.data?.message && (
+              <p className="text-sm text-rose-600">{saveNotesM.error.response.data.message}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setNotesDraft(client.notes || '')}>
+                Reset
+              </Button>
+              <Button type="button" onClick={() => saveNotesM.mutate()} disabled={saveNotesM.isPending}>
+                {saveNotesM.isPending ? 'Saving…' : 'Save notes'}
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

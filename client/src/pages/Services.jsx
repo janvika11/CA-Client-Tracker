@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createService, deleteService, getServices, updateService } from '../lib/api';
+import { formatBillingCycle } from '../lib/utils';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -15,9 +16,9 @@ import { SkeletonBlock } from '../components/ui/skeleton';
 const serviceSchema = z.object({
   name: z.string().min(3),
   code: z.string().min(2),
-  category: z.string().min(2),
-  defaultPrice: z.coerce.number().positive(),
-  billingCycle: z.string().min(2),
+  category: z.enum(['GST', 'TDS', 'Income Tax', 'ROC', 'Audit', 'Advisory', 'Other']),
+  defaultPrice: z.coerce.number().min(0, 'Price cannot be negative'),
+  billingCycle: z.enum(['monthly', 'quarterly', 'half_yearly', 'annual', 'one_time']),
 });
 
 const defaultValues = {
@@ -27,6 +28,14 @@ const defaultValues = {
   defaultPrice: 0,
   billingCycle: 'monthly',
 };
+
+const BILLING_LABELS = [
+  ['monthly', 'Monthly'],
+  ['quarterly', 'Quarterly'],
+  ['half_yearly', 'Half yearly'],
+  ['annual', 'Annual'],
+  ['one_time', 'One time'],
+];
 
 export default function Services() {
   const [open, setOpen] = useState(false);
@@ -41,6 +50,7 @@ export default function Services() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       setOpen(false);
+      setEditing(null);
       form.reset(defaultValues);
     },
   });
@@ -50,6 +60,7 @@ export default function Services() {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       setOpen(false);
       setEditing(null);
+      form.reset(defaultValues);
     },
   });
   const deleteM = useMutation({
@@ -58,8 +69,12 @@ export default function Services() {
   });
 
   const onSubmit = (values) => {
-    if (editing) updateM.mutate({ id: editing._id || editing.id, payload: values });
-    else createM.mutate(values);
+    const payload = {
+      ...values,
+      code: String(values.code || '').trim().toUpperCase(),
+    };
+    if (editing) updateM.mutate({ id: editing._id || editing.id, payload });
+    else createM.mutate(payload);
   };
 
   if (servicesQ.isLoading) {
@@ -72,6 +87,7 @@ export default function Services() {
   }
 
   const rows = servicesQ.data?.items || servicesQ.data || [];
+  const apiError = [createM.error, updateM.error].map((e) => e?.response?.data?.message).find(Boolean);
 
   return (
     <div className="space-y-6">
@@ -125,7 +141,7 @@ export default function Services() {
                     <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.name}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.code}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.category}</td>
-                    <td className="px-4 py-3 capitalize text-zinc-600 dark:text-zinc-400">{row.billingCycle}</td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatBillingCycle(row.billingCycle)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -133,7 +149,13 @@ export default function Services() {
                           size="sm"
                           onClick={() => {
                             setEditing(row);
-                            form.reset(row);
+                            form.reset({
+                              name: row.name || '',
+                              code: row.code || '',
+                              category: row.category || 'GST',
+                              defaultPrice: Number(row.defaultPrice) || 0,
+                              billingCycle: row.billingCycle || 'monthly',
+                            });
                             setOpen(true);
                           }}
                         >
@@ -154,18 +176,44 @@ export default function Services() {
 
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Service' : 'Add Service'}>
         <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+          {apiError && (
+            <p className="rounded-md bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{apiError}</p>
+          )}
           <Input placeholder="Name" {...form.register('name')} />
+          {form.formState.errors.name && (
+            <p className="text-xs text-rose-600">{form.formState.errors.name.message}</p>
+          )}
           <Input placeholder="Code" {...form.register('code')} />
+          {form.formState.errors.code && (
+            <p className="text-xs text-rose-600">{form.formState.errors.code.message}</p>
+          )}
           <Select {...form.register('category')}>
-            <option>GST</option><option>TDS</option><option>Income Tax</option><option>ROC</option><option>Audit</option><option>Advisory</option><option>Other</option>
+            <option>GST</option>
+            <option>TDS</option>
+            <option>Income Tax</option>
+            <option>ROC</option>
+            <option>Audit</option>
+            <option>Advisory</option>
+            <option>Other</option>
           </Select>
-          <Input placeholder="Default Price" type="number" {...form.register('defaultPrice')} />
+          <Input placeholder="Default Price" type="number" step="0.01" {...form.register('defaultPrice')} />
+          {form.formState.errors.defaultPrice && (
+            <p className="text-xs text-rose-600">{form.formState.errors.defaultPrice.message}</p>
+          )}
           <Select {...form.register('billingCycle')}>
-            <option value="monthly">monthly</option><option value="quarterly">quarterly</option><option value="half_yearly">half_yearly</option><option value="annual">annual</option><option value="one_time">one_time</option>
+            {BILLING_LABELS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </Select>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createM.isPending || updateM.isPending}>
+              {createM.isPending || updateM.isPending ? 'Saving…' : editing ? 'Update' : 'Create'}
+            </Button>
           </div>
         </form>
       </Modal>

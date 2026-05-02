@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import { Wallet } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { jsPDF } from 'jspdf';
 import { getBillingEntries, getClients, getPayments, recordPayment } from '../lib/api';
-import { formatDate, formatINR } from '../lib/utils';
+import { formatDate, formatINR, formatINRForPdf, formatPaymentMode } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -42,15 +42,15 @@ function generateReceiptPDF(paymentData) {
   doc.text('Payment Receipt', 14, 18);
   doc.setFontSize(11);
   doc.text(`Client: ${paymentData.clientName}`, 14, 30);
-  doc.text(`Amount: ${formatINR(paymentData.amount)}`, 14, 38);
-  doc.text(`Mode: ${paymentData.mode}`, 14, 46);
+  doc.text(`Amount: ${formatINRForPdf(paymentData.amount)}`, 14, 38);
+  doc.text(`Mode: ${formatPaymentMode(paymentData.mode)}`, 14, 46);
   doc.text(`Reference: ${paymentData.reference}`, 14, 54);
   doc.text(`Date: ${formatDate(paymentData.receivedOn)}`, 14, 62);
   doc.text(`Allocated to ${paymentData.allocations.length} invoice(s)`, 14, 70);
   let y = 80;
   paymentData.allocations.forEach((item, idx) => {
     doc.text(
-      `${idx + 1}. ${formatDate(item.dueDate)} - ${formatINR(item.allocated)}`,
+      `${idx + 1}. ${formatDate(item.dueDate)} - ${formatINRForPdf(item.allocated)}`,
       14,
       y
     );
@@ -110,15 +110,33 @@ export default function Payments() {
     );
   });
   const clients = clientsQ.data?.items || clientsQ.data || [];
-  const unpaidRows = (unpaidQ.data?.billings || unpaidQ.data?.items || unpaidQ.data || []).filter((row) =>
-    ['pending', 'partially_paid', 'overdue'].includes(row.status)
+  const unpaidRows = useMemo(
+    () =>
+      (unpaidQ.data?.billings || unpaidQ.data?.items || unpaidQ.data || []).filter((row) =>
+        ['pending', 'partially_paid', 'overdue'].includes(row.status)
+      ),
+    [unpaidQ.data]
   );
-  const unpaidIds = useMemo(() => unpaidRows.map((row) => row._id || row.id), [unpaidRows]);
+  const invoicesSyncKey = useMemo(
+    () =>
+      `${clientId}:${unpaidRows
+        .map((row) => row._id || row.id)
+        .sort()
+        .join(',')}`,
+    [clientId, unpaidRows]
+  );
+  const lastSyncedInvoicesKey = useRef('');
 
   useEffect(() => {
-    if (!clientId) return;
-    setCheckedInvoices(unpaidIds);
-  }, [clientId, unpaidIds]);
+    if (!clientId) {
+      lastSyncedInvoicesKey.current = '';
+      return;
+    }
+    if (!unpaidQ.isSuccess) return;
+    if (lastSyncedInvoicesKey.current === invoicesSyncKey) return;
+    lastSyncedInvoicesKey.current = invoicesSyncKey;
+    setCheckedInvoices(unpaidRows.map((row) => row._id || row.id));
+  }, [clientId, unpaidQ.isSuccess, invoicesSyncKey, unpaidRows]);
 
   const allocationState = useMemo(
     () => buildFifoAllocations(unpaidRows, amount, checkedInvoices),
@@ -170,7 +188,7 @@ export default function Payments() {
               <option value="">All modes</option>
               {MODES.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {formatPaymentMode(item)}
                 </option>
               ))}
             </Select>
@@ -209,7 +227,7 @@ export default function Payments() {
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatDate(row.receivedOn)}</td>
                   <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.clientId?.name || '—'}</td>
                   <td className="px-4 py-3 text-right font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(row.amount)}</td>
-                  <td className="px-4 py-3 capitalize text-zinc-600 dark:text-zinc-400">{row.mode}</td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatPaymentMode(row.mode)}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.reference}</td>
                 </tr>
               ))}
@@ -274,7 +292,11 @@ export default function Payments() {
 
           <Input type="number" min="1" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
           <Select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required>
-            {MODES.map((item) => <option key={item} value={item}>{item}</option>)}
+            {MODES.map((item) => (
+              <option key={item} value={item}>
+                {formatPaymentMode(item)}
+              </option>
+            ))}
           </Select>
           <Input placeholder="Reference" value={reference} onChange={(e) => setReference(e.target.value)} required />
           <Input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} required />

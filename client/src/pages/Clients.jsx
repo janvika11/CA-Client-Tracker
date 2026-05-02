@@ -1,19 +1,103 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Eye, MapPin, Pencil, Search, Users } from 'lucide-react';
-import { getClients } from '../lib/api';
-import { formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Eye, MapPin, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { createClient, deleteClient, getClients, updateClient } from '../lib/api';
+import { formatClientStatus, formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
+import { Modal } from '../components/ui/modal';
 import { SkeletonBlock } from '../components/ui/skeleton';
+
+const clientFormSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  firmName: z.string().optional(),
+  contactPerson: z.string().optional(),
+  email: z.string().email('Valid email required'),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  pan: z.string().optional(),
+  gstin: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  pincode: z.string().optional(),
+  status: z.enum(['active', 'inactive', 'onboarding']),
+  tags: z.string().optional(),
+});
+
+const defaultFormValues = {
+  name: '',
+  firmName: '',
+  contactPerson: '',
+  email: '',
+  phone: '',
+  whatsapp: '',
+  pan: '',
+  gstin: '',
+  address: '',
+  city: '',
+  state: '',
+  pincode: '',
+  status: 'active',
+  tags: '',
+};
+
+function clientToFormValues(client) {
+  if (!client || !client._id) return defaultFormValues;
+  return {
+    name: client.name || '',
+    firmName: client.firmName || '',
+    contactPerson: client.contactPerson || '',
+    email: client.email || '',
+    phone: client.phone || '',
+    whatsapp: client.whatsapp || '',
+    pan: client.pan || '',
+    gstin: client.gstin || '',
+    address: client.address || '',
+    city: client.city || '',
+    state: client.state || '',
+    pincode: client.pincode || '',
+    status: client.status || 'active',
+    tags: Array.isArray(client.tags) ? client.tags.join(', ') : String(client.tags || ''),
+  };
+}
+
+function buildPayload(values) {
+  const tags = String(values.tags || '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const pan = String(values.pan || '').trim().toUpperCase();
+  const gstin = String(values.gstin || '').trim().toUpperCase();
+  return {
+    name: values.name.trim(),
+    firmName: values.firmName?.trim() || undefined,
+    contactPerson: values.contactPerson?.trim() || undefined,
+    email: values.email.trim().toLowerCase(),
+    phone: values.phone?.trim() || undefined,
+    whatsapp: values.whatsapp?.trim() || undefined,
+    pan: pan || undefined,
+    gstin: gstin || undefined,
+    address: values.address?.trim() || undefined,
+    city: values.city?.trim() || undefined,
+    state: values.state?.trim() || undefined,
+    pincode: values.pincode?.trim() || undefined,
+    status: values.status,
+    tags,
+  };
+}
 
 export default function Clients() {
   const density = useUIStore((state) => state.density);
   const toggleDensity = useUIStore((state) => state.toggleDensity);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [city, setCity] = useState('');
@@ -21,10 +105,42 @@ export default function Clients() {
   const [service, setService] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [selected, setSelected] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const form = useForm({
+    resolver: zodResolver(clientFormSchema),
+    defaultValues: defaultFormValues,
+  });
 
   const query = useQuery({
     queryKey: ['clients', search, status, city, tag, service, sortBy],
     queryFn: () => getClients({ limit: 200, search, status, city, tag, service, sortBy }),
+  });
+
+  const createM = useMutation({
+    mutationFn: (payload) => createClient(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      setModalOpen(false);
+      setEditingId(null);
+      form.reset(defaultFormValues);
+    },
+  });
+
+  const updateM = useMutation({
+    mutationFn: ({ id, payload }) => updateClient({ id, payload }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      setModalOpen(false);
+      setEditingId(null);
+      form.reset(defaultFormValues);
+    },
+  });
+
+  const deleteM = useMutation({
+    mutationFn: (id) => deleteClient(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
   });
 
   const rows = query.data?.items || query.data || [];
@@ -54,14 +170,57 @@ export default function Clients() {
   const toggleRow = (id) =>
     setSelected((current) => (current.includes(id) ? current.filter((v) => v !== id) : [...current, id]));
 
+  const openAdd = () => {
+    createM.reset();
+    updateM.reset();
+    setEditingId(null);
+    form.reset(defaultFormValues);
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    createM.reset();
+    updateM.reset();
+    const id = row._id || row.id;
+    setEditingId(id);
+    form.reset(clientToFormValues(row));
+    setModalOpen(true);
+  };
+
+  const onSubmitForm = (values) => {
+    const payload = buildPayload(values);
+    if (editingId) updateM.mutate({ id: editingId, payload });
+    else createM.mutate(payload);
+  };
+
+  const onDelete = (row) => {
+    const id = row._id || row.id;
+    const name = row.name || 'this client';
+    if (!window.confirm(`Delete ${name}? This cannot be undone.`)) return;
+    deleteM.mutate(id);
+  };
+
   const statClass =
     'rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
 
+  const saving = createM.isPending || updateM.isPending;
+  const formError = [createM.error, updateM.error]
+    .map((e) => e?.response?.data?.message)
+    .find(Boolean);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Clients</h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage relationships, tags, and receivables by client.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Clients</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Manage relationships, tags, and receivables by client.
+          </p>
+        </div>
+        <Button className="h-11 shrink-0 gap-2" type="button" onClick={openAdd}>
+          <Plus className="h-4 w-4" aria-hidden />
+          Add client
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -148,7 +307,7 @@ export default function Clients() {
                 <th className="px-4 py-3">City</th>
                 <th className="px-4 py-3">Tags</th>
                 <th className="px-4 py-3 text-right">Outstanding</th>
-                <th className="w-28 px-4 py-3 text-right">Actions</th>
+                <th className="w-36 px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -202,16 +361,18 @@ export default function Clients() {
                         </div>
                       </div>
                     </td>
-                    <td className={`px-4 capitalize ${compact ? 'py-2' : 'py-3.5'}`}>
+                    <td className={`px-4 ${compact ? 'py-2' : 'py-3.5'}`}>
                       <span className="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                        {row.status || '—'}
+                        {formatClientStatus(row.status)}
                       </span>
                     </td>
                     <td className={`px-4 text-zinc-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>{row.city || '—'}</td>
                     <td className={`max-w-[140px] truncate px-4 text-zinc-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>
                       {(row.tags || []).join(', ') || '—'}
                     </td>
-                    <td className={`px-4 text-right font-semibold tabular-nums ${compact ? 'py-2' : 'py-3.5'} ${o > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                    <td
+                      className={`px-4 text-right font-semibold tabular-nums ${compact ? 'py-2' : 'py-3.5'} ${o > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+                    >
                       {formatINR(o)}
                     </td>
                     <td className={`px-4 text-right ${compact ? 'py-2' : 'py-3.5'}`}>
@@ -223,13 +384,23 @@ export default function Clients() {
                         >
                           <Eye className="h-4 w-4" aria-hidden />
                         </Link>
-                        <Link
-                          to={`/clients/${id}`}
+                        <button
+                          type="button"
                           className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-emerald-600 dark:hover:text-emerald-300"
                           title="Edit"
+                          onClick={() => openEdit(row)}
                         >
                           <Pencil className="h-4 w-4" aria-hidden />
-                        </Link>
+                        </button>
+                        <button
+                          type="button"
+                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-rose-600 transition hover:border-rose-300 hover:text-rose-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-rose-600 dark:hover:text-rose-300"
+                          title="Delete"
+                          onClick={() => onDelete(row)}
+                          disabled={deleteM.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -239,6 +410,107 @@ export default function Clients() {
           </table>
         </div>
       </Card>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => {
+          createM.reset();
+          updateM.reset();
+          setModalOpen(false);
+          setEditingId(null);
+          form.reset(defaultFormValues);
+        }}
+        title={editingId ? 'Edit client' : 'Add client'}
+        panelClassName="max-w-2xl max-h-[90vh] overflow-y-auto"
+      >
+        <form className="space-y-3" onSubmit={form.handleSubmit(onSubmitForm)}>
+          {formError && <p className="rounded-md bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{formError}</p>}
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Name *</label>
+              <Input placeholder="Name" {...form.register('name')} />
+              {form.formState.errors.name && (
+                <p className="mt-1 text-xs text-rose-600">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Firm name</label>
+              <Input placeholder="Firm name" {...form.register('firmName')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Contact person</label>
+              <Input placeholder="Contact person" {...form.register('contactPerson')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Email *</label>
+              <Input placeholder="Email" type="email" {...form.register('email')} />
+              {form.formState.errors.email && (
+                <p className="mt-1 text-xs text-rose-600">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Phone</label>
+              <Input placeholder="Phone" {...form.register('phone')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">WhatsApp</label>
+              <Input placeholder="WhatsApp" {...form.register('whatsapp')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">PAN</label>
+              <Input placeholder="PAN" {...form.register('pan')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">GSTIN</label>
+              <Input placeholder="GSTIN" {...form.register('gstin')} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Address</label>
+              <Input placeholder="Address" {...form.register('address')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">City</label>
+              <Input placeholder="City" {...form.register('city')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">State</label>
+              <Input placeholder="State" {...form.register('state')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Pincode</label>
+              <Input placeholder="Pincode" {...form.register('pincode')} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Status</label>
+              <Select {...form.register('status')}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="onboarding">Onboarding</option>
+              </Select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-zinc-500">Tags (comma-separated)</label>
+              <Input placeholder="e.g. GST, Audit" {...form.register('tags')} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setModalOpen(false);
+                setEditingId(null);
+                form.reset(defaultFormValues);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : editingId ? 'Save changes' : 'Save'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

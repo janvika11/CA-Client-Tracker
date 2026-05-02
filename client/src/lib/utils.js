@@ -39,6 +39,24 @@ export const formatINR = (amount = 0) =>
     precision: 0,
   });
 
+/** Compact dashboard display (e.g. ₹7.7L, ₹11L, ₹1.2Cr). */
+export const formatINRShort = (amount = 0) => {
+  const n = Number(amount || 0);
+  const v = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  const round1 = (x) => Math.round(x * 10) / 10;
+  if (v >= 1e7) {
+    const x = v / 1e7;
+    return `${sign}₹${x >= 10 || x % 1 < 0.05 ? Math.round(x) : round1(x)}Cr`;
+  }
+  if (v >= 1e5) {
+    const x = v / 1e5;
+    return `${sign}₹${x >= 10 || x % 1 < 0.05 ? Math.round(x) : round1(x)}L`;
+  }
+  if (v >= 1e3) return `${sign}₹${Math.round(v / 1e3)}k`;
+  return formatINR(n);
+};
+
 /** jsPDF default fonts do not render ₹ reliably — use in PDFs only. */
 export const formatINRForPdf = (amount = 0) =>
   String(formatINR(amount))

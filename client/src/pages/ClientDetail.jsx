@@ -17,6 +17,7 @@ import {
 import { Card } from '../components/ui/card';
 import { SkeletonBlock } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
+import { Textarea } from '../components/ui/textarea';
 
 const tabs = ['Overview', 'Services', 'Billing History', 'Payments', 'Notes'];
 
@@ -262,8 +263,8 @@ export default function ClientDetail() {
         {tab === 'Notes' && (
           <div className="space-y-3">
             <label className="block text-sm font-medium text-zinc-700 dark:text-dm-fg">Client notes</label>
-            <textarea
-              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-dm-border dark:bg-dm-surface dark:text-dm-table"
+            <Textarea
+              className="min-h-[160px]"
               value={notesDraft}
               onChange={(e) => setNotesDraft(e.target.value)}
               placeholder="Engagement notes, reminders, or context for this client…"

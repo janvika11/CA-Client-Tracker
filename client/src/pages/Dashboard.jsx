@@ -3,11 +3,12 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
+  ArrowUpRight,
+  Gem,
   IndianRupee,
   LayoutGrid,
-  TrendingUp,
-  Users,
   Wallet,
+  Zap,
 } from 'lucide-react';
 import {
   Bar,
@@ -22,7 +23,7 @@ import {
   YAxis,
 } from 'recharts';
 import { getBillingEntries, getClients, getPayments, getServices } from '../lib/api';
-import { formatDate, formatINR, getAvatarToneClass, getInitials } from '../lib/utils';
+import { formatDate, formatINR, formatINRShort, getAvatarToneClass, getInitials } from '../lib/utils';
 import { useUIStore } from '../store/uiStore';
 import { Card } from '../components/ui/card';
 import { SkeletonBlock } from '../components/ui/skeleton';
@@ -56,7 +57,14 @@ const legendStyleLight = { fontSize: 12 };
 
 const legendStyleDark = { fontSize: 12, color: '#94a3b8' };
 
-const billedBarDark = '#5c6e84';
+/** Billed bars — mockup subtle blue `#1e3a5f`; collected bars accent `#059669`. */
+const billedBarDark = '#1e3a5f';
+const collectedBar = '#059669';
+
+const AGING_BUCKET_ORDER = ['0-30', '31-60', '61-90', '90+'];
+/** Donut slices: green → amber → coral → dark red */
+const agingSliceColorsDark = ['#34d399', '#fbbf24', '#f87171', '#991b1b'];
+const agingSliceColorsLight = ['#059669', '#d97706', '#dc2626', '#7f1d1d'];
 
 export default function Dashboard() {
   const isDark = useUIStore((s) => s.isDark);
@@ -90,8 +98,9 @@ export default function Dashboard() {
   const serviceRows = services.data?.services || services.data?.items || services.data || [];
 
   const now = dayjs();
-  const welcomeDate = now.format('dddd, D MMMM YYYY');
+  const welcomeDate = now.format('dddd, D MMMM YYYY').toUpperCase();
   const activeCount = clientRows.filter((client) => client.status === 'active').length;
+  const totalClientCount = clientRows.length;
   const totalOutstanding = billingRows.reduce((sum, row) => sum + Number(row.balance || 0), 0);
   const collectedThisMonth = paymentRows
     .filter((row) => dayjs(row.receivedOn).month() === now.month() && dayjs(row.receivedOn).year() === now.year())
@@ -209,10 +218,10 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-dm-border sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-dm-accent">{welcomeDate}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-dm-fg">Dashboard</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#059669] dark:text-dm-accent">{welcomeDate}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-dm-fg">Dashboard</h1>
           <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-dm-muted">
-            Collections, receivables exposure, and recent practice activity at a glance.
+            Collections, aging, and receivables exposure at a glance for your CA practice.
           </p>
         </div>
       </div>
@@ -227,12 +236,21 @@ export default function Dashboard() {
                   <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">{kpi.label}</p>
-                  <p
-                    className={`mt-1 font-bold tabular-nums text-zinc-900 ${kpi.valueClass || 'dark:text-dm-fg'} ${kpi.small ? 'text-sm leading-relaxed' : 'text-2xl'}`}
-                  >
-                    {kpi.value}
-                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-[#94a3b8]">{kpi.label}</p>
+                  {kpi.kind === 'activeSplit' ? (
+                    <p className="mt-2">
+                      <span className="text-3xl font-bold tabular-nums text-sky-600 dark:text-[#60a5fa]">{activeCount}</span>
+                      <span className="ml-1.5 text-sm font-medium tabular-nums text-zinc-500 dark:text-dm-muted">
+                        out of {totalClientCount} total
+                      </span>
+                    </p>
+                  ) : (
+                    <p
+                      className={`mt-1 font-bold tabular-nums ${kpi.valueClass ?? 'text-slate-900 dark:text-dm-fg'} ${kpi.small ? 'text-sm leading-relaxed sm:text-[13px]' : 'text-[1.65rem] leading-tight tracking-tight'}`}
+                    >
+                      {kpi.value}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
@@ -245,7 +263,7 @@ export default function Dashboard() {
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Monthly billed vs collected</h2>
-              <p className="text-xs text-zinc-500 dark:text-dm-muted">Last six months</p>
+              <p className="text-xs text-zinc-500 dark:text-[#475569]">Last six rolling months · bars in ₹</p>
             </div>
             <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
@@ -259,8 +277,8 @@ export default function Dashboard() {
               />
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
               <Legend wrapperStyle={legendProps} />
-              <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#64748b'} radius={[4, 4, 0, 0]} />
-              <Bar name="Collected" dataKey="Collected" fill="#34d399" radius={[4, 4, 0, 0]} />
+              <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#94a3b8'} radius={[4, 4, 0, 0]} />
+              <Bar name="Collected" dataKey="Collected" fill={collectedBar} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -268,26 +286,40 @@ export default function Dashboard() {
         <Card className="h-[340px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Outstanding aging</h2>
-            <p className="text-xs text-zinc-500 dark:text-dm-muted">By days past due</p>
+            <p className="text-xs text-zinc-500 dark:text-[#475569]">0–30d · 31–60d · 61–90d · 90+d buckets</p>
           </div>
-          <ResponsiveContainer width="100%" height="88%">
-            <PieChart>
-              <Pie
-                data={Object.entries(agingBuckets).map(([name, value]) => ({ name, value }))}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={58}
-                outerRadius={92}
-                paddingAngle={2}
-              >
-                {Object.keys(agingBuckets).map((key, idx) => (
-                  <Cell key={key} fill={colors[idx % colors.length]} stroke="transparent" />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend verticalAlign="bottom" height={28} wrapperStyle={legendProps} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="relative h-[280px] w-full pt-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={agingChartData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={58}
+                  outerRadius={92}
+                  paddingAngle={2}
+                >
+                  {AGING_BUCKET_ORDER.map((key, idx) => (
+                    <Cell
+                      key={key}
+                      fill={(isDark ? agingSliceColorsDark : agingSliceColorsLight)[idx]}
+                      stroke="transparent"
+                    />
+                  ))}
+                </Pie>
+                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                <Legend verticalAlign="bottom" height={32} wrapperStyle={legendProps} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+              <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-dm-fg">
+                {formatINRShort(agingTotal)}
+              </span>
+              <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-[#475569]">
+                total outstanding
+              </span>
+            </div>
+          </div>
         </Card>
       </div>
 

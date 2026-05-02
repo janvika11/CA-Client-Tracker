@@ -227,7 +227,6 @@ export default function Payments() {
         <div className="border-b border-slate-200 p-4 dark:border-dm-border">
           <div className="grid gap-2 md:grid-cols-3">
             <Input
-              className="border-slate-200 dark:border-dm-border"
               placeholder="Search reference / client…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

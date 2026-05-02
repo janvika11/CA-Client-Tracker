@@ -65,7 +65,7 @@ export default function Clients() {
   const [city, setCity] = useState('');
   const [tag, setTag] = useState('');
   const [service, setService] = useState('');
-  const [sortBy] = useState('-createdAt');
+  const [sortBy, setSortBy] = useState('-createdAt');
   const [selected, setSelected] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -273,11 +273,11 @@ export default function Clients() {
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         <div className="border-b border-slate-200 p-4 dark:border-dm-border">
           <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
-            <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              <div className="relative sm:col-span-2">
+            <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8">
+              <div className="relative sm:col-span-2 2xl:col-span-2">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-dm-muted" />
                 <Input
-                  className="border-slate-200 pl-10 dark:border-dm-border"
+                  className="pl-10"
                   placeholder="Search name, email, PAN, GSTIN…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -305,6 +305,12 @@ export default function Clients() {
                     {s.name}
                   </option>
                 ))}
+              </Select>
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="Sort clients">
+                <option value="-createdAt">Newest first</option>
+                <option value="createdAt">Oldest first</option>
+                <option value="name">Name A–Z</option>
+                <option value="-name">Name Z–A</option>
               </Select>
               <Button type="button" variant="outline" className="h-11 justify-center gap-2" onClick={toggleDensity}>
                 {compact ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}

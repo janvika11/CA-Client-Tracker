@@ -39,7 +39,7 @@ export default function Login() {
   if (user) return <Navigate to="/dashboard" replace />;
 
   const inputClass =
-    'w-full rounded-lg border border-solid border-[#e2e8f0] bg-[#f8fafc] py-[10px] pl-[38px] pr-3 text-sm text-[#0f172a] outline-none placeholder:text-[#94a3b8] focus:border-[#059669] focus:ring-1 focus:ring-[#059669]';
+    'w-full rounded-[6px] border-[0.5px] border-solid border-[#e2e8f0] bg-white py-[6px] pl-[38px] pr-[10px] text-sm leading-5 text-[#374151] outline-none placeholder:text-[#94a3b8] focus:border-[#059669]';
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0f172a] font-sans antialiased">

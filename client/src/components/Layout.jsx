@@ -100,7 +100,6 @@ export default function Layout({ children }) {
   const firmName = user?.firmDetails?.firmName || user?.firmName || 'Your practice';
   const userName = user?.name || user?.email || 'User';
   const userRole = user?.role || 'owner';
-  const firmInitials = useMemo(() => getInitials(firmName, 2), [firmName]);
   const userInitials = useMemo(() => getInitials(userName, 2), [userName]);
   const userTone = useMemo(() => getAvatarToneClass(userName || user?.email || ''), [userName, user?.email]);
 
@@ -109,24 +108,13 @@ export default function Layout({ children }) {
       <div className="border-b border-slate-200 px-4 py-5 dark:border-dm-border">
         <Link
           to="/dashboard"
-          className="flex items-start gap-3 rounded-xl transition hover:bg-slate-50 dark:hover:bg-white/[0.04]"
+          className="block rounded-lg transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
           onClick={() => setMobileNav(false)}
         >
-          <span
-            className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold tracking-tight text-white shadow-md',
-              'bg-emerald-600 shadow-emerald-600/25 dark:bg-dm-accent'
-            )}
-          >
-            {firmInitials}
-          </span>
-          <div className="min-w-0 pt-0.5">
-            <p className="truncate text-[11px] font-semibold uppercase leading-tight tracking-wide text-slate-500 dark:text-dm-dim">
-              Practice
-            </p>
-            <p className="truncate text-[13px] font-bold uppercase tracking-wide text-slate-900 dark:text-dm-fg">{firmName}</p>
-            <p className="mt-0.5 truncate text-xs font-semibold text-emerald-700 dark:text-dm-green">CA Tracker</p>
-          </div>
+          <p className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-[#059669] dark:text-dm-accent">
+            {firmName}
+          </p>
+          <h1 className="mt-1.5 text-lg font-bold tracking-tight text-slate-900 dark:text-dm-fg">CA Tracker</h1>
         </Link>
       </div>
 
@@ -143,8 +131,8 @@ export default function Layout({ children }) {
                 cn(
                   'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'border border-emerald-200/70 bg-emerald-50 text-emerald-950 shadow-sm dark:border-transparent dark:bg-dm-hover dark:text-dm-green'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-hover dark:hover:text-dm-table'
+                    ? 'bg-slate-100 text-slate-900 dark:bg-dm-hover dark:text-dm-fg'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-hover/70 dark:hover:text-dm-table'
                 )
               }
             >
@@ -152,19 +140,21 @@ export default function Layout({ children }) {
                 <>
                   <span
                     className={cn(
-                      'absolute left-0 top-1/2 h-[60%] w-1 -translate-y-1/2 rounded-r-full transition-colors',
-                      isActive ? 'bg-emerald-600 dark:bg-dm-accent' : 'bg-transparent'
+                      'absolute left-0 top-1/2 h-[52%] w-1 -translate-y-1/2 rounded-r-full transition-colors',
+                      isActive ? 'bg-[#059669] dark:bg-dm-accent' : 'bg-transparent'
                     )}
                     aria-hidden
                   />
-                  <Icon
+                  <span
                     className={cn(
-                      'relative z-[1] h-[18px] w-[18px] shrink-0 transition-colors',
-                      isActive ? 'text-emerald-700 dark:text-dm-green' : 'text-slate-400 group-hover:text-slate-600 dark:text-dm-muted dark:group-hover:text-dm-table'
+                      'relative z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors',
+                      isActive
+                        ? 'bg-white text-[#059669] shadow-sm dark:bg-[#0f172a]/90 dark:text-dm-green'
+                        : 'bg-slate-100 text-slate-500 dark:bg-[#0f172a]/80 dark:text-dm-dim'
                     )}
-                    strokeWidth={1.75}
-                    aria-hidden
-                  />
+                  >
+                    <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
+                  </span>
                   <span className="relative z-[1] truncate">{item.label}</span>
                 </>
               )}
@@ -249,8 +239,9 @@ export default function Layout({ children }) {
               />
               <Select
                 className={cn(
-                  'h-10 min-h-0 w-[8.5rem] appearance-none rounded-md border-[0.5px] border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-bold uppercase tracking-wide shadow-inner',
-                  'text-slate-800 dark:border-dm-border dark:bg-dm-hover dark:text-dm-fg sm:h-11 sm:w-44 sm:text-sm'
+                  'h-10 min-h-0 w-[8.5rem] appearance-none border-[#e2e8f0] bg-white pl-9 pr-2 text-xs font-bold uppercase tracking-wide text-[#059669]',
+                  'dark:border-[#334155] dark:bg-[#1e293b] dark:text-dm-accent',
+                  'sm:h-11 sm:w-44 sm:text-sm'
                 )}
                 value={currentFY}
                 onChange={(event) => setFY(event.target.value)}
@@ -267,14 +258,17 @@ export default function Layout({ children }) {
             <button
               type="button"
               className={cn(
-                'focus-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-500 transition',
-                'hover:border-emerald-300 hover:bg-white dark:border-dm-border dark:bg-dm-hover/80 dark:text-dm-muted dark:hover:border-dm-accent/40 dark:hover:bg-dm-hover',
+                'focus-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[6px] border-[0.5px] border-[#e2e8f0] bg-white px-3 text-left text-sm text-[#64748b] transition',
+                'hover:border-[#059669]/40 focus-visible:border-[#059669]',
+                'dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:border-dm-accent/50',
                 'sm:h-11 sm:gap-3 sm:px-4'
               )}
               onClick={() => setSearchOpen(true)}
             >
-              <Search className="shrink-0 text-emerald-600 dark:text-dm-accent" size={17} strokeWidth={1.75} />
-              <span className="truncate font-medium">Search clients, invoices, services…</span>
+              <Search className="shrink-0 text-[#059669] dark:text-dm-accent" size={17} strokeWidth={1.75} />
+              <span className="truncate font-medium text-[#64748b] dark:text-dm-muted">
+                Search clients, invoices…
+              </span>
               <kbd className="ml-auto hidden shrink-0 items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 shadow-sm dark:border-dm-border dark:bg-dm-hover dark:text-dm-muted sm:inline-flex">
                 <span className="text-[11px]">⌘</span>K
               </kbd>
@@ -302,7 +296,9 @@ export default function Layout({ children }) {
                 aria-expanded={userMenuOpen}
                 aria-haspopup="menu"
               >
-                <span className={cn('flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold', userTone)}>{userInitials}</span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#059669] text-xs font-bold text-white dark:bg-dm-accent">
+                  {userInitials}
+                </span>
                 <ChevronDown className={cn('h-4 w-4 text-slate-400 transition dark:text-dm-muted', userMenuOpen && 'rotate-180')} aria-hidden />
               </button>
               {userMenuOpen ? (
@@ -358,7 +354,7 @@ export default function Layout({ children }) {
           >
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-dm-muted" aria-hidden />
-              <Input className="h-11 border-slate-200 pl-10 dark:border-dm-border dark:bg-dm-hover" placeholder="Search clients, services, invoices…" autoFocus />
+              <Input className="pl-10" placeholder="Search clients, services, invoices…" autoFocus />
             </div>
             <p className="mt-3 text-xs text-slate-500 dark:text-dm-muted">Press Esc to close · Global search coming soon</p>
           </div>

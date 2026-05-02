@@ -26,9 +26,15 @@
     border-color: theme('colors.dm.border');
   }
 
+  /* Native <option> lists (limited on some OS themes, best-effort in Chromium/Firefox) */
+  select option {
+    background-color: #ffffff;
+    color: #374151;
+  }
+
   .dark select option {
-    background-color: theme('colors.dm.surface');
-    color: theme('colors.dm.fg');
+    background-color: #1e293b;
+    color: #e2e8f0;
   }
 }
 

@@ -26,40 +26,34 @@ const app = express();
 
 const envCorsOrigin = (process.env.CORS_ORIGIN || '').trim();
 
-// Security Middleware (CORP same-origin can block credentialed cross-origin fetches)
+/** Any https host ending in .vercel.app (production + preview / branch deploys). */
+const vercelAppOrigin = /^https:\/\/[^\s/]+\.vercel\.app$/;
+
+const corsStaticOrigins = [
+  'https://ca-client-tracker.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  ...(envCorsOrigin ? [envCorsOrigin] : []),
+];
+
+// CORS must run before Helmet so preflight and credentialed responses always get ACAO / ACAC headers.
 app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  cors({
+    origin: [...corsStaticOrigins, vercelAppOrigin],
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    // Omit allowedHeaders — cors reflects Access-Control-Request-Headers from the browser (Axios-safe).
+    optionsSuccessStatus: 204,
   })
 );
 
 app.use(
-  cors({
-    origin(origin, callback) {
-      const allowed = [
-        'https://ca-client-tracker.vercel.app',
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-      ];
-      if (envCorsOrigin && !allowed.includes(envCorsOrigin)) {
-        allowed.push(envCorsOrigin);
-      }
-      if (
-        !origin ||
-        allowed.includes(origin) ||
-        (typeof origin === 'string' && origin.endsWith('.vercel.app'))
-      ) {
-        callback(null, true);
-      } else {
-        callback(null, false);
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    optionsSuccessStatus: 204,
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
   })
 );
 

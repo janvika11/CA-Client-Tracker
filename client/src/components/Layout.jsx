@@ -249,8 +249,8 @@ export default function Layout({ children }) {
               />
               <Select
                 className={cn(
-                  'h-10 w-[8.5rem] appearance-none rounded-lg border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-bold uppercase tracking-wide',
-                  'text-slate-800 shadow-inner dark:border-dm-border dark:bg-dm-elevated dark:text-dm-fg sm:h-11 sm:w-44 sm:text-sm'
+                  'h-10 min-h-0 w-[8.5rem] appearance-none rounded-md border-[0.5px] border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-bold uppercase tracking-wide shadow-inner',
+                  'text-slate-800 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg sm:h-11 sm:w-44 sm:text-sm'
                 )}
                 value={currentFY}
                 onChange={(event) => setFY(event.target.value)}

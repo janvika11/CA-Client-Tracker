@@ -10,17 +10,36 @@
   }
 
   body {
-    @apply bg-slate-50 font-sans text-zinc-900 antialiased transition-colors duration-200 dark:bg-dm-bg dark:text-dm-fg;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    @apply bg-slate-50 font-sans text-zinc-900 antialiased transition-colors duration-200;
+  }
+
+  /* Avoid @apply dark:* with theme colors — PostCSS can fail to resolve `dark:bg-dm-bg`. */
+  .dark body {
+    background-color: theme('colors.dm.bg');
+    color: theme('colors.dm.fg');
   }
 
   * {
-    @apply border-zinc-200 dark:border-dm-border;
+    @apply border-zinc-200;
+  }
+
+  .dark * {
+    border-color: theme('colors.dm.border');
+  }
+
+  /* Native <option> menus (where browsers allow styling) */
+  .dark select option {
+    background-color: theme('colors.dm.surface');
+    color: theme('colors.dm.fg');
   }
 }
 
 @layer utilities {
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dm-bg;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+
+  .dark .focus-ring:focus-visible {
+    --tw-ring-offset-color: theme('colors.dm.bg');
   }
 }

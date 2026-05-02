@@ -45,10 +45,25 @@ export default function Reports() {
   const payments = paymentsQ.data?.payments || paymentsQ.data?.items || paymentsQ.data || [];
   const services = servicesQ.data?.services || servicesQ.data?.items || servicesQ.data || [];
 
+  const billingClientKey = (row) => String(row.clientId?._id ?? row.clientId ?? '');
+  const paymentClientKey = (row) => String(row.clientId?._id ?? row.clientId ?? '');
+
+  const filteredBillings = useMemo(() => {
+    if (!selectedClient) return billings;
+    const key = String(selectedClient);
+    return billings.filter((row) => billingClientKey(row) === key);
+  }, [billings, selectedClient]);
+
+  const filteredPayments = useMemo(() => {
+    if (!selectedClient) return payments;
+    const key = String(selectedClient);
+    return payments.filter((row) => paymentClientKey(row) === key);
+  }, [payments, selectedClient]);
+
   const aging = useMemo(() => {
     const result = { '0-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
     const today = dayjs();
-    billings.forEach((row) => {
+    filteredBillings.forEach((row) => {
       const balance = Number(row.balance || 0);
       if (balance <= 0) return;
       const days = today.diff(dayjs(row.dueDate), 'day');
@@ -58,37 +73,42 @@ export default function Reports() {
       else result['90+'] += balance;
     });
     return result;
-  }, [billings]);
+  }, [filteredBillings]);
 
   const serviceRevenue = useMemo(
     () =>
       services.map((service) => ({
         service: service.name,
-        revenue: billings
-          .filter((row) => (row.serviceId?._id || row.serviceId) === (service._id || service.id))
+        revenue: filteredBillings
+          .filter((row) => String(row.serviceId?._id || row.serviceId) === String(service._id || service.id))
           .reduce((sum, row) => sum + Number(row.amountPaid || 0), 0),
       })),
-    [services, billings]
+    [services, filteredBillings]
   );
 
   const pnlSummary = useMemo(() => {
-    const billed = billings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const collected = payments.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const outstanding = billings.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+    const billed = filteredBillings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const collected = filteredPayments.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const outstanding = filteredBillings.reduce((sum, row) => sum + Number(row.balance || 0), 0);
     return { fy, billed, collected, outstanding };
-  }, [billings, payments, fy]);
+  }, [filteredBillings, filteredPayments, fy]);
 
-  const clientStatementRows = billings
-    .filter((row) => (selectedClient ? (row.clientId?._id || row.clientId) === selectedClient : true))
-    .map((row) => ({
-      client: row.clientId?.name || 'Client',
-      service: row.serviceId?.name || '-',
-      amount: Number(row.amount || 0),
-      paid: Number(row.amountPaid || 0),
-      balance: Number(row.balance || 0),
-      dueDate: dayjs(row.dueDate).format('DD-MMM-YYYY'),
-      status: row.status,
-    }));
+  const clientStatementRows = useMemo(
+    () =>
+      filteredBillings.map((row) => ({
+        client: row.clientId?.name || 'Client',
+        service: row.serviceId?.name || '-',
+        amount: Number(row.amount || 0),
+        paid: Number(row.amountPaid || 0),
+        balance: Number(row.balance || 0),
+        dueDate: dayjs(row.dueDate).format('DD-MMM-YYYY'),
+        status: row.status,
+      })),
+    [filteredBillings]
+  );
+
+  const selectedClientName =
+    selectedClient && clients.find((c) => String(c._id || c.id) === String(selectedClient))?.name;
 
   if (clientsQ.isLoading || billingsQ.isLoading || paymentsQ.isLoading || servicesQ.isLoading) {
     return (
@@ -103,11 +123,41 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Reports</h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Statements and workpapers for FY <span className="font-semibold text-zinc-800 dark:text-zinc-200">{fy}</span>.
-        </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Reports</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Statements and workpapers for FY <span className="font-semibold text-zinc-800 dark:text-zinc-200">{fy}</span>.
+          </p>
+          {selectedClient ? (
+            <p className="mt-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              Scope: <span className="text-zinc-900 dark:text-white">{selectedClientName || 'Selected client'}</span> · Aging,
+              P&amp;L, and service revenue match this selection.
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Choose a client to limit every section below to that practice. Leave as “All clients” for firm-wide totals.
+            </p>
+          )}
+        </div>
+        <div className="flex w-full max-w-sm shrink-0 flex-col gap-1.5">
+          <label htmlFor="reports-client-scope" className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Client scope
+          </label>
+          <Select
+            id="reports-client-scope"
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
+            aria-label="Filter all reports by client"
+          >
+            <option value="">All clients</option>
+            {clients.map((client) => (
+              <option key={client._id || client.id} value={client._id || client.id}>
+                {client.name}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
       <Card className="space-y-3 shadow-card dark:shadow-card-dark">
@@ -116,15 +166,7 @@ export default function Reports() {
             <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
             Outstanding statement
           </h2>
-          <div className="flex gap-2">
-            <Select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
-              <option value="">All clients</option>
-              {clients.map((client) => (
-                <option key={client._id || client.id} value={client._id || client.id}>
-                  {client.name}
-                </option>
-              ))}
-            </Select>
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               onClick={() => downloadExcel('outstanding-statement', clientStatementRows)}

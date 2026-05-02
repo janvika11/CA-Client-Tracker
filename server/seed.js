@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import { getFY } from './utils/fyUtils.js';
 import User from './models/User.js';
 import Service from './models/Service.js';
@@ -26,15 +25,13 @@ async function seedDatabase() {
       Payment.deleteMany({})
     ]);
 
-    // Create demo CA user
+    // Create demo CA user — set plaintext on passwordHash so User pre('save') hashes once.
+    // (Pre-hashing here caused double-hash and broke production login / comparePassword.)
     console.log('Creating demo CA user...');
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('demo1234', salt);
-
     const demoUser = await User.create({
       name: 'Demo CA',
       email: 'demo@ca.com',
-      passwordHash: hashedPassword,
+      passwordHash: 'demo1234',
       role: 'owner',
       firmDetails: {
         firmName: 'Demo CA Practice',

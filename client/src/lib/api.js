@@ -48,6 +48,10 @@ export const getClientServices = async (clientId) => {
   return { ...d, items: services, services };
 };
 
+/** All firm client↔service links (for Clients table service filter). */
+export const listClientServiceLinks = async (params) =>
+  withItems(unwrap(await api.get('/client-services', { params })), ['clientServices']);
+
 export const getBillingMatrix = async (fy) =>
   unwrap(await api.get('/billing/matrix', { params: { fy } }));
 export const generateBilling = async (payload) => unwrap(await api.post('/billing/generate', payload));

@@ -115,17 +115,17 @@ export default function Layout({ children }) {
           <span
             className={cn(
               'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold tracking-tight text-white shadow-md',
-              'bg-emerald-600 shadow-emerald-600/25'
+              'bg-emerald-600 shadow-emerald-600/25 dark:bg-dm-accent'
             )}
           >
             {firmInitials}
           </span>
           <div className="min-w-0 pt-0.5">
-            <p className="truncate text-[11px] font-semibold uppercase leading-tight tracking-wide text-slate-500 dark:text-dm-muted">
+            <p className="truncate text-[11px] font-semibold uppercase leading-tight tracking-wide text-slate-500 dark:text-dm-dim">
               Practice
             </p>
             <p className="truncate text-[13px] font-bold uppercase tracking-wide text-slate-900 dark:text-dm-fg">{firmName}</p>
-            <p className="mt-0.5 truncate text-xs font-semibold text-emerald-700 dark:text-emerald-400">CA Tracker</p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-emerald-700 dark:text-dm-green">CA Tracker</p>
           </div>
         </Link>
       </div>
@@ -143,8 +143,8 @@ export default function Layout({ children }) {
                 cn(
                   'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'border border-emerald-200/70 bg-emerald-50 text-emerald-950 shadow-sm dark:border-transparent dark:bg-dm-surface dark:text-emerald-300 dark:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.22)]'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-white/[0.04] dark:hover:text-dm-fg'
+                    ? 'border border-emerald-200/70 bg-emerald-50 text-emerald-950 shadow-sm dark:border-transparent dark:bg-dm-hover dark:text-dm-green'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-hover dark:hover:text-dm-table'
                 )
               }
             >
@@ -153,14 +153,14 @@ export default function Layout({ children }) {
                   <span
                     className={cn(
                       'absolute left-0 top-1/2 h-[60%] w-1 -translate-y-1/2 rounded-r-full transition-colors',
-                      isActive ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-transparent'
+                      isActive ? 'bg-emerald-600 dark:bg-dm-accent' : 'bg-transparent'
                     )}
                     aria-hidden
                   />
                   <Icon
                     className={cn(
                       'relative z-[1] h-[18px] w-[18px] shrink-0 transition-colors',
-                      isActive ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-dm-muted dark:group-hover:text-dm-fg'
+                      isActive ? 'text-emerald-700 dark:text-dm-green' : 'text-slate-400 group-hover:text-slate-600 dark:text-dm-muted dark:group-hover:text-dm-table'
                     )}
                     strokeWidth={1.75}
                     aria-hidden
@@ -174,19 +174,19 @@ export default function Layout({ children }) {
       </nav>
 
       <div className="border-t border-slate-200 p-3 dark:border-dm-border">
-        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-dm-border dark:bg-dm-surface dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-dm-border dark:bg-dm-hover dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
           <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold', userTone)}>
             {userInitials}
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-dm-fg">{userName}</p>
-            <span className="mt-0.5 inline-flex rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200">
+            <span className="mt-0.5 inline-flex rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-[#064e3b] dark:text-dm-green">
               {formatRole(userRole)}
             </span>
           </div>
           <button
             type="button"
-            className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white hover:text-rose-600 dark:hover:bg-dm-elevated dark:hover:text-rose-400"
+            className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white hover:text-rose-600 dark:hover:bg-dm-hover dark:hover:text-dm-danger"
             title="Sign out"
             onClick={() => logoutMutation.mutate()}
             disabled={logoutMutation.isPending}
@@ -212,7 +212,7 @@ export default function Layout({ children }) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-dm-border dark:bg-dm-bg dark:shadow-[4px_0_24px_rgba(15,23,42,0.45)]',
+          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-dm-border dark:bg-dm-surface',
           mobileNav ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           'lg:sticky lg:z-30'
         )}
@@ -220,7 +220,7 @@ export default function Layout({ children }) {
         <div className="flex justify-end border-b border-slate-100 p-2 dark:border-dm-border lg:hidden">
           <button
             type="button"
-            className="focus-ring rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-dm-elevated"
+            className="focus-ring rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-dm-hover"
             onClick={() => setMobileNav(false)}
             aria-label="Close sidebar"
           >
@@ -231,10 +231,10 @@ export default function Layout({ children }) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-0">
-        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-dm-border dark:bg-dm-surface/45 dark:backdrop-blur-xl lg:px-6">
+        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-dm-subtle dark:bg-dm-bg/95 lg:px-6">
           <button
             type="button"
-            className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-dm-border dark:text-dm-fg dark:hover:bg-dm-elevated lg:hidden"
+            className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-dm-border dark:text-dm-fg dark:hover:bg-dm-hover lg:hidden"
             onClick={() => setMobileNav(true)}
             aria-label="Open menu"
           >
@@ -244,13 +244,13 @@ export default function Layout({ children }) {
           <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-4">
             <div className="relative shrink-0">
               <CalendarDays
-                className="pointer-events-none absolute left-2.5 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-emerald-600 dark:text-emerald-400"
+                className="pointer-events-none absolute left-2.5 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-emerald-600 dark:text-dm-accent"
                 aria-hidden
               />
               <Select
                 className={cn(
                   'h-10 min-h-0 w-[8.5rem] appearance-none rounded-md border-[0.5px] border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-bold uppercase tracking-wide shadow-inner',
-                  'text-slate-800 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg sm:h-11 sm:w-44 sm:text-sm'
+                  'text-slate-800 dark:border-dm-border dark:bg-dm-hover dark:text-dm-fg sm:h-11 sm:w-44 sm:text-sm'
                 )}
                 value={currentFY}
                 onChange={(event) => setFY(event.target.value)}
@@ -268,14 +268,14 @@ export default function Layout({ children }) {
               type="button"
               className={cn(
                 'focus-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-500 transition',
-                'hover:border-emerald-300 hover:bg-white dark:border-dm-border dark:bg-dm-elevated/80 dark:text-dm-muted dark:hover:border-emerald-500/30 dark:hover:bg-dm-elevated',
+                'hover:border-emerald-300 hover:bg-white dark:border-dm-border dark:bg-dm-hover/80 dark:text-dm-muted dark:hover:border-dm-accent/40 dark:hover:bg-dm-hover',
                 'sm:h-11 sm:gap-3 sm:px-4'
               )}
               onClick={() => setSearchOpen(true)}
             >
-              <Search className="shrink-0 text-emerald-600 dark:text-emerald-400" size={17} strokeWidth={1.75} />
+              <Search className="shrink-0 text-emerald-600 dark:text-dm-accent" size={17} strokeWidth={1.75} />
               <span className="truncate font-medium">Search clients, invoices, services…</span>
-              <kbd className="ml-auto hidden shrink-0 items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 shadow-sm dark:border-dm-border dark:bg-dm-elevated dark:text-dm-muted sm:inline-flex">
+              <kbd className="ml-auto hidden shrink-0 items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 shadow-sm dark:border-dm-border dark:bg-dm-hover dark:text-dm-muted sm:inline-flex">
                 <span className="text-[11px]">⌘</span>K
               </kbd>
             </button>
@@ -285,7 +285,7 @@ export default function Layout({ children }) {
             <button
               type="button"
               onClick={toggleDark}
-              className="focus-ring flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 dark:text-dm-fg dark:hover:bg-dm-elevated"
+              className="focus-ring flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 dark:text-dm-fg dark:hover:bg-dm-hover"
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? <Sun className="h-[18px] w-[18px]" strokeWidth={1.75} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={1.75} />}
@@ -296,7 +296,7 @@ export default function Layout({ children }) {
                 type="button"
                 className={cn(
                   'focus-ring flex items-center gap-1 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm transition',
-                  'hover:border-emerald-300 dark:border-dm-border dark:bg-dm-elevated/90 dark:hover:border-emerald-500/35'
+                  'hover:border-emerald-300 dark:border-dm-border dark:bg-dm-hover/90 dark:hover:border-dm-accent/35'
                 )}
                 onClick={() => setUserMenuOpen((o) => !o)}
                 aria-expanded={userMenuOpen}
@@ -316,7 +316,7 @@ export default function Layout({ children }) {
                   <button
                     type="button"
                     role="menuitem"
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-dm-fg dark:hover:bg-dm-elevated"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-dm-fg dark:hover:bg-dm-hover"
                     onClick={() => {
                       setUserMenuOpen(false);
                       navigate('/settings');
@@ -328,7 +328,7 @@ export default function Layout({ children }) {
                   <button
                     type="button"
                     role="menuitem"
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 dark:text-dm-danger dark:hover:bg-[#450a0a]/35"
                     onClick={() => {
                       setUserMenuOpen(false);
                       logoutMutation.mutate();
@@ -358,7 +358,7 @@ export default function Layout({ children }) {
           >
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-dm-muted" aria-hidden />
-              <Input className="h-11 border-slate-200 pl-10 dark:border-dm-border dark:bg-dm-bg" placeholder="Search clients, services, invoices…" autoFocus />
+              <Input className="h-11 border-slate-200 pl-10 dark:border-dm-border dark:bg-dm-hover" placeholder="Search clients, services, invoices…" autoFocus />
             </div>
             <p className="mt-3 text-xs text-slate-500 dark:text-dm-muted">Press Esc to close · Global search coming soon</p>
           </div>

@@ -11,14 +11,23 @@ export default {
         dm: {
           bg: '#0f172a',
           surface: '#1e293b',
-          elevated: '#273548',
+          hover: '#243347',
           border: '#334155',
-          muted: '#94a3b8',
+          subtle: '#1e3a5f',
           fg: '#f1f5f9',
+          muted: '#94a3b8',
+          dim: '#475569',
+          table: '#e2e8f0',
+          accent: '#059669',
+          green: '#34d399',
+          danger: '#f87171',
+          warn: '#fbbf24',
+          info: '#60a5fa',
         },
+        /** Legacy KPI / chart accents (light mode) — dark uses dm.* tokens in components */
         paid: '#059669',
-        partial: '#f59e0b',
-        overdue: '#f43f5e',
+        partial: '#fbbf24',
+        overdue: '#f87171',
         brand: {
           50: '#ecfdf5',
           100: '#d1fae5',
@@ -34,8 +43,7 @@ export default {
       },
       boxShadow: {
         card: '0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06)',
-        'card-dark':
-          '0 1px 2px rgb(15 23 42 / 0.35), 0 6px 24px rgb(15 23 42 / 0.45)',
+        'card-dark': '0 4px 24px rgb(15 23 42 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.04)',
       },
     },
   },

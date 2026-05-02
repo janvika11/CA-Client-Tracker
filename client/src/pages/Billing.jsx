@@ -56,16 +56,16 @@ const getMonthCell = (clientRow, month) => {
 const matrixCellFill = (status) => {
   switch (status) {
     case 'paid':
-      return 'bg-emerald-600 ring-2 ring-emerald-700/35 shadow-sm dark:bg-emerald-500 dark:ring-emerald-300/35';
+      return 'bg-emerald-600 ring-2 ring-emerald-700/35 shadow-sm dark:bg-[#064e3b] dark:ring-[#059669]/50';
     case 'partially_paid':
     case 'partial':
-      return 'bg-amber-500 ring-2 ring-amber-700/35 shadow-sm dark:bg-amber-600 dark:ring-amber-300/30';
+      return 'bg-amber-500 ring-2 ring-amber-700/35 shadow-sm dark:bg-[#451a03] dark:ring-[#fbbf24]/35';
     case 'overdue':
-      return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-rose-500 dark:ring-rose-300/35';
+      return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-[#450a0a] dark:ring-[#f87171]/35';
     case 'waived':
-      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-dm-muted/55 dark:ring-dm-muted/30';
+      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-dm-dim dark:ring-dm-border';
     default:
-      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-dm-muted/45 dark:ring-dm-muted/30';
+      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-dm-surface dark:ring-[#334155] dark:border dark:border-dm-border';
   }
 };
 
@@ -78,12 +78,12 @@ function MatrixCell({ cell, onCellClick }) {
   return (
     <div className="group relative flex items-center justify-center py-0.5">
       {!cell ? (
-        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-dm-elevated" aria-hidden />
+        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-dm-hover" aria-hidden />
       ) : (
         <>
           <button
             type="button"
-            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-dm-muted/45' : ''}`}
+            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-dm-accent ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-dm-subtle dark:!bg-transparent' : ''}`}
             onClick={() => {
               if (!cell._placeholder) onCellClick();
             }}
@@ -194,7 +194,7 @@ export default function Billing() {
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {empty ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-hover">
               <Receipt className="h-8 w-8 text-zinc-400 dark:text-dm-muted" aria-hidden />
             </span>
             <p className="mt-5 text-base font-semibold text-zinc-900 dark:text-dm-fg">No billing for FY {fy}</p>
@@ -209,19 +209,19 @@ export default function Billing() {
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
-                  <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-dm-border dark:bg-dm-elevated/90">
+                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
+                  <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-dm-subtle dark:bg-dm-surface">
                     Client
                   </th>
                   {MONTH_COLUMNS.map((m) => (
-                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-fg">
+                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-dim">
                       <span className="inline-flex min-w-[3.5rem] flex-col items-center gap-0.5">
                         <CalendarRange className="mx-auto h-3.5 w-3.5 opacity-60" aria-hidden />
                         {m.label}
                       </span>
                     </th>
                   ))}
-                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-fg">
+                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
                     Outstanding
                   </th>
                 </tr>
@@ -232,10 +232,10 @@ export default function Billing() {
                   return (
                     <tr
                       key={clientRow.clientId || clientRow._id}
-                      className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-dm-border dark:hover:bg-dm-elevated/40"
+                      className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-dm-subtle dark:hover:bg-dm-hover"
                     >
                       <td
-                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg"
+                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-table"
                         title={clientRow.clientName || clientRow.name}
                       >
                         <span className="block truncate">{clientRow.clientName || clientRow.name}</span>
@@ -269,7 +269,7 @@ export default function Billing() {
                         );
                       })}
                       <td
-                        className={`sticky right-0 z-10 border-l border-zinc-200 bg-white px-4 py-2 text-right text-sm font-semibold tabular-nums dark:border-dm-border dark:bg-dm-surface ${bal > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+                        className={`sticky right-0 z-10 border-l border-zinc-200 bg-white px-4 py-2 text-right text-sm font-semibold tabular-nums dark:border-dm-subtle dark:bg-dm-surface ${bal > 0 ? 'text-rose-600 dark:text-dm-danger' : 'text-emerald-600 dark:text-dm-green'}`}
                       >
                         {formatINR(bal)}
                       </td>
@@ -278,19 +278,19 @@ export default function Billing() {
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold dark:border-dm-border dark:bg-dm-elevated/80">
-                  <td className="sticky left-0 z-10 border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-900 dark:border-dm-border dark:bg-dm-elevated/80 dark:text-dm-fg">
+                <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold dark:border-dm-subtle dark:bg-dm-surface">
+                  <td className="sticky left-0 z-10 border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-900 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-fg">
                     Totals
                   </td>
                   {monthTotals.map((total, idx) => (
                     <td
                       key={MONTH_COLUMNS[idx].label}
-                      className="px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-dm-fg"
+                      className="px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-dm-table"
                     >
                       {total > 0 ? formatINR(total) : '—'}
                     </td>
                   ))}
-                  <td className="sticky right-0 z-10 border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-sm tabular-nums text-rose-700 dark:border-dm-border dark:bg-dm-elevated/80 dark:text-rose-300">
+                  <td className="sticky right-0 z-10 border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-sm tabular-nums text-rose-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-danger">
                     {formatINR(grandOutstanding)}
                   </td>
                 </tr>
@@ -310,7 +310,7 @@ export default function Billing() {
             <span>{formatInvoiceStatus(selectedCell.status)}</span> · Due: {formatDate(selectedCell.dueDate)}
           </p>
           {selectedCell._rows?.length > 1 && (
-            <ul className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-dm-border">
+            <ul className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-dm-subtle">
               {selectedCell._rows.map((row, idx) => (
                 <li key={`${row.service}-${idx}`} className="flex justify-between gap-4 text-zinc-700 dark:text-dm-fg">
                   <span>{row.service}</span>

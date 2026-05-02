@@ -17,15 +17,15 @@ const MODES = ['cash', 'upi', 'bank_transfer', 'cheque'];
 function paymentModeBadgeClass(mode) {
   switch (mode) {
     case 'cash':
-      return 'bg-slate-200/90 text-slate-900 dark:bg-dm-elevated dark:text-dm-fg';
+      return 'bg-slate-200/90 text-slate-900 dark:bg-dm-hover dark:text-dm-table';
     case 'upi':
-      return 'bg-violet-100 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200';
+      return 'bg-violet-100 text-violet-900 dark:bg-[#1e3a5f] dark:text-dm-info';
     case 'bank_transfer':
-      return 'bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-200';
+      return 'bg-sky-100 text-sky-900 dark:bg-[#1e3a5f] dark:text-dm-info';
     case 'cheque':
-      return 'bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100';
+      return 'bg-amber-100 text-amber-950 dark:bg-[#451a03] dark:text-dm-warn';
     default:
-      return 'bg-slate-100 text-slate-700 dark:bg-dm-elevated dark:text-dm-fg';
+      return 'bg-slate-100 text-slate-700 dark:bg-dm-hover dark:text-dm-muted';
   }
 }
 
@@ -244,7 +244,7 @@ export default function Payments() {
         </div>
         <div className="overflow-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
+            <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
               <tr>
                 <th className="w-32 px-4 py-3">Date</th>
                 <th className="min-w-[10rem] px-4 py-3">Client</th>
@@ -258,7 +258,7 @@ export default function Payments() {
                 <tr>
                   <td className="px-6 py-16 text-center dark:text-dm-fg" colSpan={5}>
                     <div className="mx-auto flex max-w-sm flex-col items-center">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-hover">
                         <Wallet className="h-7 w-7 text-zinc-400" aria-hidden />
                       </span>
                       <p className="mt-4 font-semibold text-zinc-900 dark:text-dm-fg">No payments yet</p>
@@ -270,11 +270,11 @@ export default function Payments() {
               {rows.map((row) => (
                 <tr
                   key={row._id || row.id}
-                  className="border-b border-slate-100 transition-colors hover:bg-emerald-50/30 dark:border-dm-border dark:hover:bg-emerald-950/15"
+                  className="border-b border-slate-100 transition-colors hover:bg-emerald-50/30 dark:border-dm-subtle dark:hover:bg-dm-hover"
                 >
                   <td className="px-4 py-3 text-slate-600 dark:text-dm-muted">{formatDate(row.receivedOn)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-dm-fg">{row.clientId?.name || '—'}</td>
-                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900 dark:text-dm-fg">{formatINR(row.amount)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-dm-table">{row.clientId?.name || '—'}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900 dark:text-dm-green">{formatINR(row.amount)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(
@@ -322,9 +322,9 @@ export default function Payments() {
           </Select>
 
           {clientId && (
-            <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm dark:border-dm-border dark:bg-dm-bg/50">
+            <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm dark:border-dm-border dark:bg-dm-hover/60">
               {unpaidRows.length === 0 ? (
-                <p className="text-zinc-500">No unpaid entries for this client.</p>
+                <p className="text-zinc-500 dark:text-dm-muted">No unpaid entries for this client.</p>
               ) : (
                 unpaidRows
                   .sort((a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf())
@@ -332,14 +332,14 @@ export default function Payments() {
                     const id = item._id || item.id;
                     const checked = checkedInvoices.includes(id);
                     return (
-                      <label key={id} className="mb-1 flex items-center gap-2 rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-dm-elevated">
+                      <label key={id} className="mb-1 flex items-center gap-2 rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-dm-hover">
                         <input
                           type="checkbox"
                           className="focus-ring"
                           checked={checked}
                           onChange={() => toggleInvoice(id)}
                         />
-                        <span>{formatDate(item.dueDate)} - {formatINR(item.balance || item.amount)}</span>
+                        <span className="dark:text-dm-table">{formatDate(item.dueDate)} - {formatINR(item.balance || item.amount)}</span>
                       </label>
                     );
                   })
@@ -358,10 +358,10 @@ export default function Payments() {
           <Input placeholder="Reference" value={reference} onChange={(e) => setReference(e.target.value)} required />
           <Input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} required />
 
-          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3 text-sm dark:border-dm-border dark:bg-dm-elevated/80">
-            <p className="font-medium">FIFO allocation preview</p>
-            <p className="mt-1">Allocated: {formatINR(Number(amount || 0) - allocationState.remaining)}</p>
-            <p>Unallocated: {formatINR(allocationState.remaining)}</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3 text-sm dark:border-dm-border dark:bg-dm-hover">
+            <p className="font-medium dark:text-dm-fg">FIFO allocation preview</p>
+            <p className="mt-1 dark:text-dm-table">Allocated: <span className="font-semibold text-emerald-700 dark:text-dm-green">{formatINR(Number(amount || 0) - allocationState.remaining)}</span></p>
+            <p className="dark:text-dm-table">Unallocated: <span className="font-semibold tabular-nums text-zinc-800 dark:text-dm-muted">{formatINR(allocationState.remaining)}</span></p>
           </div>
 
           <div className="flex justify-end gap-2">

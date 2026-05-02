@@ -38,7 +38,7 @@ function serviceCategoryBadgeClass(cat) {
     ROC: 'bg-amber-100 text-amber-950 ring-1 ring-amber-600/20 dark:bg-amber-950/40 dark:text-amber-100',
     Audit: 'bg-rose-100 text-rose-900 ring-1 ring-rose-600/15 dark:bg-rose-950/40 dark:text-rose-100',
     Advisory: 'bg-teal-100 text-teal-900 ring-1 ring-teal-600/15 dark:bg-teal-950/40 dark:text-teal-100',
-    Other: 'bg-slate-200 text-slate-800 ring-1 ring-slate-500/15 dark:bg-dm-elevated dark:text-dm-fg',
+    Other: 'bg-slate-200 text-slate-800 ring-1 ring-slate-500/15 dark:bg-dm-hover dark:text-dm-fg',
   };
   return map[cat] || map.Other;
 }
@@ -125,7 +125,7 @@ export default function Services() {
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {rows.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-hover">
               <Briefcase className="h-7 w-7 text-zinc-400" aria-hidden />
             </span>
             <p className="mt-4 font-semibold text-zinc-900 dark:text-dm-fg">No services in catalogue</p>
@@ -137,7 +137,7 @@ export default function Services() {
         ) : (
           <div className="overflow-auto">
             <table className="min-w-full table-fixed text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
+              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
                 <tr>
                   <th className="px-4 py-3">Name</th>
                   <th className="w-24 px-4 py-3">Code</th>
@@ -151,9 +151,9 @@ export default function Services() {
                 {rows.map((row) => (
                   <tr
                     key={row._id || row.id}
-                    className="border-b border-slate-100 transition-colors hover:bg-emerald-50/25 dark:border-dm-border dark:hover:bg-emerald-950/15"
+                    className="border-b border-slate-100 transition-colors hover:bg-emerald-50/25 dark:border-dm-subtle dark:hover:bg-dm-hover"
                   >
-                    <td className="truncate px-4 py-3 font-medium text-zinc-900 dark:text-dm-fg">{row.name}</td>
+                    <td className="truncate px-4 py-3 font-medium text-zinc-900 dark:text-dm-table">{row.name}</td>
                     <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-dm-muted">{row.code}</td>
                     <td className="px-4 py-3">
                       <span
@@ -166,7 +166,7 @@ export default function Services() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-dm-muted">{formatBillingCycle(row.billingCycle)}</td>
-                    <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-zinc-900 dark:text-dm-fg">
+                    <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-zinc-900 dark:text-dm-green">
                       {formatINR(row.defaultPrice)}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -204,7 +204,7 @@ export default function Services() {
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Service' : 'Add Service'}>
         <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
           {apiError && (
-            <p className="rounded-md bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{apiError}</p>
+            <p className="rounded-md bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:bg-[#450a0a]/30 dark:text-dm-danger">{apiError}</p>
           )}
           <Input placeholder="Name" {...form.register('name')} />
           {form.formState.errors.name && (

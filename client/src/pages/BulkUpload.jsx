@@ -159,7 +159,7 @@ export default function BulkUpload() {
 
       <Card>
         <label
-          className="focus-ring flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 px-4 py-14 text-center transition hover:border-emerald-400/60 hover:bg-emerald-50/30 dark:border-dm-border dark:hover:border-emerald-600/40 dark:hover:bg-emerald-950/20"
+          className="focus-ring flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 px-4 py-14 text-center transition hover:border-emerald-400/60 hover:bg-emerald-50/30 dark:border-dm-subtle dark:hover:border-dm-accent dark:hover:bg-dm-hover"
           onDrop={(event) => {
             event.preventDefault();
             const file = event.dataTransfer.files?.[0];
@@ -213,26 +213,26 @@ export default function BulkUpload() {
           </div>
           <div className="max-h-[420px] overflow-auto">
             <table className="min-w-full text-left text-sm">
-              <thead>
+              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
                 <tr>
-                  <th className="p-2">#</th>
-                  <th className="p-2">Name</th>
-                  <th className="p-2">Email</th>
-                  <th className="p-2">Status</th>
-                  <th className="p-2">Errors</th>
+                  <th className="p-2 text-left font-semibold">#</th>
+                  <th className="p-2 text-left font-semibold">Name</th>
+                  <th className="p-2 text-left font-semibold">Email</th>
+                  <th className="p-2 text-left font-semibold">Status</th>
+                  <th className="p-2 text-left font-semibold">Errors</th>
                 </tr>
               </thead>
               <tbody>
                 {validated.map((item) => (
                   <tr
                     key={item.index}
-                    className={`border-t border-zinc-200 dark:border-dm-border ${item.errors.length ? 'bg-rose-500/10' : ''}`}
+                    className={`border-t border-zinc-200 transition-colors dark:border-dm-subtle dark:hover:bg-dm-hover ${item.errors.length ? 'bg-rose-500/10 dark:bg-[#450a0a]/25' : ''}`}
                   >
-                    <td className="p-2">{item.index + 1}</td>
-                    <td className="p-2">{item.normalized.name || '-'}</td>
-                    <td className="p-2">{item.normalized.email || '-'}</td>
-                    <td className="p-2">{formatClientStatus(item.normalized.status || 'active')}</td>
-                    <td className="p-2 text-rose-500">{item.errors.join(', ') || 'OK'}</td>
+                    <td className="p-2 dark:text-dm-muted">{item.index + 1}</td>
+                    <td className="p-2 dark:text-dm-table">{item.normalized.name || '-'}</td>
+                    <td className="p-2 dark:text-dm-table">{item.normalized.email || '-'}</td>
+                    <td className="p-2 dark:text-dm-table">{formatClientStatus(item.normalized.status || 'active')}</td>
+                    <td className="p-2 text-rose-500 dark:text-dm-danger">{item.errors.join(', ') || 'OK'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -243,12 +243,12 @@ export default function BulkUpload() {
 
       {summary && (
         <Card className="text-sm">
-          <p className="font-medium">Upload summary</p>
-          <p className="mt-1 text-emerald-600">Success: {summary.success}</p>
-          <p className="text-amber-500">Skipped: {summary.skipped}</p>
-          <p className="text-rose-500">Failed: {summary.failed}</p>
+          <p className="font-medium dark:text-dm-fg">Upload summary</p>
+          <p className="mt-1 text-emerald-600 dark:text-dm-green">Success: {summary.success}</p>
+          <p className="text-amber-500 dark:text-dm-warn">Skipped: {summary.skipped}</p>
+          <p className="text-rose-500 dark:text-dm-danger">Failed: {summary.failed}</p>
           {summary.failures?.length > 0 && (
-            <ul className="mt-3 list-inside list-disc space-y-1 text-rose-700 dark:text-rose-300">
+            <ul className="mt-3 list-inside list-disc space-y-1 text-rose-700 dark:text-dm-danger">
               {summary.failures.map((f) => (
                 <li key={f.row}>
                   Row {f.row}: {f.reason}

@@ -20,7 +20,7 @@ export function Modal({ open, onClose, title, children, panelClassName = '' }) {
         className={`w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-4 dark:border-dm-border dark:bg-dm-surface ${panelClassName}`.trim()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-dm-fg">{title}</h3>
           <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
             <X size={16} />
           </Button>

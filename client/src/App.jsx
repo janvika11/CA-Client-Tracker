@@ -63,7 +63,7 @@ function ProtectedLayout() {
   if (query.isLoading) {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-dm-bg">
-        <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-dm-border dark:bg-dm-bg lg:block">
+        <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-dm-border dark:bg-dm-surface lg:block">
           <div className="space-y-3 p-4">
             <SkeletonBlock className="h-12 w-full" />
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (

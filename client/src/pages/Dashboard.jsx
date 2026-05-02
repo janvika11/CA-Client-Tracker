@@ -164,40 +164,44 @@ export default function Dashboard() {
     .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())
     .slice(0, 16);
 
-  const colors = ['#059669', '#f59e0b', '#f43f5e', '#64748b', '#0ea5e9', '#6366f1'];
+  const colors = ['#059669', '#fbbf24', '#f87171', '#64748b', '#60a5fa', '#34d399'];
 
   const kpis = [
     {
       label: 'Total outstanding',
       value: formatINR(totalOutstanding),
-      border: 'border-l-rose-500 dark:border-l-rose-400',
+      border: 'border-l-rose-500 dark:border-l-dm-danger',
       icon: AlertTriangle,
-      iconWrap:
-        'bg-rose-100 text-rose-700 dark:bg-dm-bg dark:text-rose-300 dark:shadow-[inset_0_0_0_1px_rgba(244,63,94,0.25)]',
+      iconWrap: 'bg-rose-100 text-rose-700 dark:bg-[#450a0a]/50 dark:text-dm-danger dark:shadow-[inset_0_0_0_1px_rgba(248,113,113,0.35)]',
+      valueClass: 'dark:text-dm-danger',
     },
     {
       label: 'Collected this month',
       value: formatINR(collectedThisMonth),
-      border: 'border-l-emerald-600 dark:border-l-emerald-400',
+      border: 'border-l-emerald-600 dark:border-l-dm-green',
       icon: Wallet,
       iconWrap:
-        'bg-emerald-100 text-emerald-800 dark:bg-dm-bg dark:text-emerald-300 dark:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.28)]',
+        'bg-emerald-100 text-emerald-800 dark:bg-[#064e3b]/55 dark:text-dm-green dark:shadow-[inset_0_0_0_1px_rgba(52,211,153,0.35)]',
+      valueClass: 'dark:text-dm-green',
     },
     {
       label: 'Overdue 30 / 60 / 90+ days',
       value: `${formatINR(overdueAges.over30)} · ${formatINR(overdueAges.over60)} · ${formatINR(overdueAges.over90)}`,
-      border: 'border-l-amber-500 dark:border-l-amber-400',
+      border: 'border-l-amber-500 dark:border-l-dm-warn',
       icon: TrendingUp,
       iconWrap:
-        'bg-amber-100 text-amber-900 dark:bg-dm-bg dark:text-amber-300 dark:shadow-[inset_0_0_0_1px_rgba(245,158,11,0.28)]',
+        'bg-amber-100 text-amber-900 dark:bg-[#451a03]/55 dark:text-dm-warn dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]',
       small: true,
+      valueClass: 'dark:text-dm-warn',
     },
     {
       label: 'Active clients',
       value: String(activeCount),
-      border: 'border-l-sky-600 dark:border-l-sky-400',
+      border: 'border-l-sky-600 dark:border-l-dm-info',
       icon: Users,
-      iconWrap: 'bg-sky-100 text-sky-800 dark:bg-dm-bg dark:text-sky-300 dark:shadow-[inset_0_0_0_1px_rgba(56,189,248,0.28)]',
+      iconWrap:
+        'bg-sky-100 text-sky-800 dark:bg-[#1e3a5f]/65 dark:text-dm-info dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.35)]',
+      valueClass: 'dark:text-dm-green',
     },
   ];
 
@@ -205,7 +209,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-dm-border sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{welcomeDate}</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-dm-accent">{welcomeDate}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-dm-fg">Dashboard</h1>
           <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-dm-muted">
             Collections, receivables exposure, and recent practice activity at a glance.
@@ -225,7 +229,7 @@ export default function Dashboard() {
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">{kpi.label}</p>
                   <p
-                    className={`mt-1 font-bold tabular-nums text-zinc-900 dark:text-dm-fg ${kpi.small ? 'text-sm leading-relaxed' : 'text-2xl'}`}
+                    className={`mt-1 font-bold tabular-nums text-zinc-900 ${kpi.valueClass || 'dark:text-dm-fg'} ${kpi.small ? 'text-sm leading-relaxed' : 'text-2xl'}`}
                   >
                     {kpi.value}
                   </p>
@@ -256,7 +260,7 @@ export default function Dashboard() {
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
               <Legend wrapperStyle={legendProps} />
               <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#64748b'} radius={[4, 4, 0, 0]} />
-              <Bar name="Collected" dataKey="Collected" fill="#059669" radius={[4, 4, 0, 0]} />
+              <Bar name="Collected" dataKey="Collected" fill="#34d399" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -303,7 +307,7 @@ export default function Dashboard() {
               />
               <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
               <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Bar name="Outstanding" dataKey="outstanding" fill="#f43f5e" radius={[0, 4, 4, 0]} barSize={14} />
+              <Bar name="Outstanding" dataKey="outstanding" fill="#f87171" radius={[0, 4, 4, 0]} barSize={14} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -343,7 +347,7 @@ export default function Dashboard() {
         ) : (
           <ul className="relative mt-6 space-y-0 pl-2">
             <span
-              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-dm-border"
+              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-dm-subtle"
               aria-hidden
             />
             {activityFeed.map((item, index) => {
@@ -360,8 +364,8 @@ export default function Dashboard() {
                     <p
                       className={`text-sm font-medium leading-snug ${
                         item.type === 'payment'
-                          ? 'text-zinc-800 dark:text-dm-fg'
-                          : 'text-rose-800 dark:text-rose-200'
+                          ? 'text-zinc-800 dark:text-dm-table'
+                          : 'text-rose-800 dark:text-dm-danger'
                       }`}
                     >
                       {item.text}

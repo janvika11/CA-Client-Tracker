@@ -13,7 +13,6 @@
     @apply bg-slate-50 font-sans text-zinc-900 antialiased transition-colors duration-200;
   }
 
-  /* Avoid @apply dark:* with theme colors — PostCSS can fail to resolve `dark:bg-dm-bg`. */
   .dark body {
     background-color: theme('colors.dm.bg');
     color: theme('colors.dm.fg');
@@ -27,7 +26,6 @@
     border-color: theme('colors.dm.border');
   }
 
-  /* Native <option> menus (where browsers allow styling) */
   .dark select option {
     background-color: theme('colors.dm.surface');
     color: theme('colors.dm.fg');
@@ -40,6 +38,7 @@
   }
 
   .dark .focus-ring:focus-visible {
+    --tw-ring-color: theme('colors.dm.accent');
     --tw-ring-offset-color: theme('colors.dm.bg');
   }
 }

@@ -7,13 +7,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:active:bg-emerald-600',
+          'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 dark:bg-dm-accent dark:hover:bg-[#047857] dark:active:bg-[#065f46]',
         outline:
-          'border border-zinc-300 bg-white px-4 py-2 text-zinc-800 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40',
+          'border border-zinc-300 bg-white px-4 py-2 text-zinc-800 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg dark:hover:border-dm-accent dark:hover:bg-dm-hover',
         ghost:
-          'px-3 py-2 text-zinc-700 hover:bg-emerald-50 hover:text-emerald-900 dark:text-dm-fg dark:hover:bg-emerald-950/30 dark:hover:text-emerald-100',
-        success: 'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700',
-        danger: 'bg-rose-600 px-4 py-2 text-white shadow-sm hover:bg-rose-700',
+          'px-3 py-2 text-zinc-700 hover:bg-emerald-50 hover:text-emerald-900 dark:text-dm-muted dark:hover:bg-dm-hover dark:hover:text-dm-table',
+        success: 'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700 dark:bg-dm-accent dark:hover:bg-[#047857]',
+        danger:
+          'bg-rose-600 px-4 py-2 text-white shadow-sm hover:bg-rose-700 dark:bg-[#7f1d1d] dark:hover:bg-[#991b1b]',
       },
       size: {
         sm: 'h-8',

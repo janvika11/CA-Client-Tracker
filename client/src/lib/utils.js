@@ -106,13 +106,15 @@ export const formatDate = (value) => {
 export const getStatusTone = (status) => {
   switch (status) {
     case 'paid':
-      return 'bg-emerald-600/15 text-emerald-600';
+      return 'bg-emerald-100 text-emerald-800 dark:bg-[#064e3b] dark:text-[#34d399]';
     case 'partially_paid':
     case 'partial':
-      return 'bg-amber-500/15 text-amber-500';
+      return 'bg-amber-100 text-amber-900 dark:bg-[#451a03] dark:text-[#fbbf24]';
     case 'overdue':
-      return 'bg-rose-500/15 text-rose-500';
+      return 'bg-rose-100 text-rose-800 dark:bg-[#450a0a] dark:text-[#f87171]';
+    case 'waived':
+      return 'bg-slate-200 text-slate-700 dark:bg-dm-hover dark:text-dm-muted';
     default:
-      return 'bg-zinc-400/15 text-zinc-600 dark:text-dm-muted';
+      return 'bg-zinc-100 text-zinc-700 dark:bg-dm-surface dark:text-[#64748b] dark:ring-1 dark:ring-dm-border';
   }
 };

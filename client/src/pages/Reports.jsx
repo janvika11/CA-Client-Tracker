@@ -130,7 +130,7 @@ export default function Reports() {
             Statements and workpapers for FY <span className="font-semibold text-zinc-800 dark:text-dm-fg">{fy}</span>.
           </p>
           {selectedClient ? (
-            <p className="mt-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+            <p className="mt-2 text-sm font-medium text-emerald-700 dark:text-dm-accent">
               Scope: <span className="text-zinc-900 dark:text-dm-fg">{selectedClientName || 'Selected client'}</span> · Aging,
               P&amp;L, and service revenue match this selection.
             </p>
@@ -163,7 +163,7 @@ export default function Reports() {
       <Card className="space-y-3 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
-            <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-dm-accent" aria-hidden />
             Outstanding statement
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -199,7 +199,7 @@ export default function Reports() {
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
-            <PieChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            <PieChart className="h-5 w-5 text-emerald-600 dark:text-dm-accent" aria-hidden />
             Receivables aging (0–30 / 31–60 / 61–90 / 90+)
           </h2>
           <div className="flex gap-2">
@@ -213,9 +213,9 @@ export default function Reports() {
         </div>
         <div className="grid gap-2 md:grid-cols-4">
           {Object.entries(aging).map(([bucket, amount]) => (
-            <div key={bucket} className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-dm-border">
-              <p className="text-zinc-500">{bucket}</p>
-              <p className="font-semibold">{formatINR(amount)}</p>
+            <div key={bucket} className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-dm-border dark:bg-dm-hover">
+              <p className="text-zinc-500 dark:text-dm-muted">{bucket}</p>
+              <p className="font-semibold tabular-nums text-zinc-900 dark:text-dm-green">{formatINR(amount)}</p>
             </div>
           ))}
         </div>
@@ -224,7 +224,7 @@ export default function Reports() {
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
-            <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-dm-accent" aria-hidden />
             Service-wise revenue
           </h2>
           <div className="flex gap-2">
@@ -239,7 +239,7 @@ export default function Reports() {
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
-            <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+            <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-dm-accent" aria-hidden />
             FY P&amp;L summary
           </h2>
           <div className="flex gap-2">
@@ -250,17 +250,17 @@ export default function Reports() {
           </div>
         </div>
         <div className="grid gap-2 md:grid-cols-3">
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-hover">
             <p className="text-sm text-zinc-500 dark:text-dm-muted">Billed</p>
-            <p className="text-xl font-semibold">{formatINR(pnlSummary.billed)}</p>
+            <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-dm-table">{formatINR(pnlSummary.billed)}</p>
           </div>
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-hover">
             <p className="text-sm text-zinc-500 dark:text-dm-muted">Collected</p>
-            <p className="text-xl font-semibold">{formatINR(pnlSummary.collected)}</p>
+            <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-dm-green">{formatINR(pnlSummary.collected)}</p>
           </div>
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-hover">
             <p className="text-sm text-zinc-500 dark:text-dm-muted">Outstanding</p>
-            <p className="text-xl font-semibold">{formatINR(pnlSummary.outstanding)}</p>
+            <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-dm-danger">{formatINR(pnlSummary.outstanding)}</p>
           </div>
         </div>
       </Card>

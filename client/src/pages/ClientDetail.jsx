@@ -81,15 +81,15 @@ export default function ClientDetail() {
   const tone = getAvatarToneClass(name);
 
   const kpi = [
-    { label: 'Total billed (FY)', value: formatINR(totalBilled), border: 'border-l-emerald-600 dark:border-l-emerald-500' },
-    { label: 'Collected', value: formatINR(collected), border: 'border-l-sky-600 dark:border-l-sky-500' },
+    { label: 'Total billed (FY)', value: formatINR(totalBilled), border: 'border-l-emerald-600 dark:border-l-dm-accent' },
+    { label: 'Collected', value: formatINR(collected), border: 'border-l-sky-600 dark:border-l-dm-info' },
     {
       label: 'Outstanding',
       value: formatINR(outstanding),
-      border: 'border-l-rose-500 dark:border-l-rose-400',
-      valueClass: outstanding > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-600 dark:text-emerald-400',
+      border: 'border-l-rose-500 dark:border-l-dm-danger',
+      valueClass: outstanding > 0 ? 'text-rose-700 dark:text-dm-danger' : 'text-emerald-600 dark:text-dm-green',
     },
-    { label: 'Oldest unpaid due', value: formatDate(oldestUnpaid), border: 'border-l-amber-500 dark:border-l-amber-400', small: true },
+    { label: 'Oldest unpaid due', value: formatDate(oldestUnpaid), border: 'border-l-amber-500 dark:border-l-dm-warn', small: true },
   ];
 
   return (
@@ -100,7 +100,7 @@ export default function ClientDetail() {
           <div className="min-w-0">
             <Link
               to="/clients"
-              className="focus-ring inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+              className="focus-ring inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-dm-accent dark:hover:text-dm-green"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
               Clients
@@ -136,8 +136,8 @@ export default function ClientDetail() {
             className={cn(
               'rounded-lg px-4 py-2.5 text-sm font-semibold transition-all',
               tab === item
-                ? 'bg-white text-emerald-800 shadow-sm ring-2 ring-emerald-500/25 dark:bg-dm-elevated dark:text-emerald-300 dark:ring-emerald-500/30'
-                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-elevated dark:hover:text-dm-fg'
+                ? 'bg-white text-emerald-800 shadow-sm ring-2 ring-emerald-500/25 dark:bg-dm-hover dark:text-dm-green dark:ring-dm-accent/40'
+                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-hover dark:hover:text-dm-fg'
             )}
           >
             {item}
@@ -173,7 +173,7 @@ export default function ClientDetail() {
         {tab === 'Services' && (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 text-xs font-semibold uppercase text-zinc-500 dark:border-dm-border dark:text-dm-muted">
+              <thead className="border-b border-zinc-200 bg-slate-50/90 text-xs font-semibold uppercase text-zinc-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
                 <tr>
                   <th className="py-2 pr-4">Service name</th>
                   <th className="py-2 pr-4 text-right">Custom price</th>
@@ -196,9 +196,9 @@ export default function ClientDetail() {
                     const cycle = s.billingCycle || svc?.billingCycle;
                     const active = s.isActive !== false;
                     return (
-                      <tr key={s._id || s.id}>
-                        <td className="py-3 font-medium text-zinc-900 dark:text-dm-fg">{svcName}</td>
-                        <td className="py-3 text-right tabular-nums text-zinc-700 dark:text-dm-fg">
+                      <tr key={s._id || s.id} className="dark:hover:bg-dm-hover">
+                        <td className="py-3 font-medium text-zinc-900 dark:text-dm-table">{svcName}</td>
+                        <td className="py-3 text-right tabular-nums text-zinc-700 dark:text-dm-green">
                           {formatINR(s.customPrice ?? svc?.defaultPrice)}
                         </td>
                         <td className="py-3 text-zinc-600 dark:text-dm-muted">{formatBillingCycle(cycle)}</td>
@@ -223,14 +223,14 @@ export default function ClientDetail() {
           </div>
         )}
         {tab === 'Billing History' && (
-          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-border">
+          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-subtle">
             {billings.length === 0 ? (
               <li className="py-8 text-center text-zinc-500">No billing records.</li>
             ) : (
               billings.map((b) => (
-                <li key={b._id || b.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={b._id || b.id} className="flex flex-wrap items-center justify-between gap-2 py-3 transition-colors dark:hover:bg-dm-hover">
                   <span className="text-zinc-600 dark:text-dm-muted">{formatDate(b.dueDate)}</span>
-                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(b.amount)}</span>
+                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-green">{formatINR(b.amount)}</span>
                   <span
                     className={cn(
                       'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-black/5 dark:ring-white/10',
@@ -245,14 +245,14 @@ export default function ClientDetail() {
           </ul>
         )}
         {tab === 'Payments' && (
-          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-border">
+          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-subtle">
             {payments.length === 0 ? (
               <li className="py-8 text-center text-zinc-500">No payments recorded.</li>
             ) : (
               payments.map((p) => (
-                <li key={p._id || p.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={p._id || p.id} className="flex flex-wrap items-center justify-between gap-2 py-3 transition-colors dark:hover:bg-dm-hover">
                   <span className="text-zinc-600 dark:text-dm-muted">{formatDate(p.receivedOn)}</span>
-                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(p.amount)}</span>
+                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-green">{formatINR(p.amount)}</span>
                   <span className="text-xs text-zinc-600 dark:text-dm-muted">{formatPaymentMode(p.mode)}</span>
                 </li>
               ))
@@ -263,7 +263,7 @@ export default function ClientDetail() {
           <div className="space-y-3">
             <label className="block text-sm font-medium text-zinc-700 dark:text-dm-fg">Client notes</label>
             <textarea
-              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-dm-border dark:bg-dm-bg dark:text-dm-fg"
+              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-dm-border dark:bg-dm-surface dark:text-dm-table"
               value={notesDraft}
               onChange={(e) => setNotesDraft(e.target.value)}
               placeholder="Engagement notes, reminders, or context for this client…"

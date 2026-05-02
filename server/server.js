@@ -46,23 +46,28 @@ app.use(
       if (envCorsOrigin && !allowed.includes(envCorsOrigin)) {
         allowed.push(envCorsOrigin);
       }
-      if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+      if (
+        !origin ||
+        allowed.includes(origin) ||
+        (typeof origin === 'string' && origin.endsWith('.vercel.app'))
+      ) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false);
       }
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     optionsSuccessStatus: 204,
   })
 );
 
-// Rate Limiting
+// Rate Limiting (do not count CORS preflight — blocked OPTIONS often surface as "CORS" in the browser)
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 min
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many requests, please try again later'
@@ -133,7 +138,7 @@ app.listen(PORT, () => {
 ║   ✓ Server running on http://localhost:${PORT}
 ║   ✓ MongoDB: ${MONGODB_URI.includes('localhost') ? 'Local' : 'Cloud'}                            ║
 ║   ✓ Rate Limit: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per 15min
-║   ✓ CORS: ${allowedOrigins.join(', ')}  ║
+║   ✓ CORS: production Vercel + *.vercel.app + localhost + CORS_ORIGIN ║
 ║   ✓ Cron Jobs: Enabled (Billing + Overdue)                 ║
 ╚═══════════════════════════════════════════════════════════╝
   `);

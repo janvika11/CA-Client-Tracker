@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 import mongoose from 'mongoose';
 import { getFY } from './utils/fyUtils.js';
 import User from './models/User.js';

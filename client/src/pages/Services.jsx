@@ -38,7 +38,7 @@ function serviceCategoryBadgeClass(cat) {
     ROC: 'bg-amber-100 text-amber-950 ring-1 ring-amber-600/20 dark:bg-amber-950/40 dark:text-amber-100',
     Audit: 'bg-rose-100 text-rose-900 ring-1 ring-rose-600/15 dark:bg-rose-950/40 dark:text-rose-100',
     Advisory: 'bg-teal-100 text-teal-900 ring-1 ring-teal-600/15 dark:bg-teal-950/40 dark:text-teal-100',
-    Other: 'bg-slate-200 text-slate-800 ring-1 ring-slate-500/15 dark:bg-zinc-700 dark:text-zinc-200',
+    Other: 'bg-slate-200 text-slate-800 ring-1 ring-slate-500/15 dark:bg-dm-elevated dark:text-dm-fg',
   };
   return map[cat] || map.Other;
 }
@@ -107,8 +107,8 @@ export default function Services() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Services</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Catalogue, default pricing, and billing cycles.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Services</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">Catalogue, default pricing, and billing cycles.</p>
         </div>
         <Button
           className="h-11 shrink-0"
@@ -125,11 +125,11 @@ export default function Services() {
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {rows.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
               <Briefcase className="h-7 w-7 text-zinc-400" aria-hidden />
             </span>
-            <p className="mt-4 font-semibold text-zinc-900 dark:text-white">No services in catalogue</p>
-            <p className="mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">Define GST, audit, and advisory lines so billing can attach to clients.</p>
+            <p className="mt-4 font-semibold text-zinc-900 dark:text-dm-fg">No services in catalogue</p>
+            <p className="mt-1 max-w-sm text-sm text-zinc-500 dark:text-dm-muted">Define GST, audit, and advisory lines so billing can attach to clients.</p>
             <Button className="mt-6" onClick={() => setOpen(true)}>
               Create service
             </Button>
@@ -137,7 +137,7 @@ export default function Services() {
         ) : (
           <div className="overflow-auto">
             <table className="min-w-full table-fixed text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400">
+              <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
                 <tr>
                   <th className="px-4 py-3">Name</th>
                   <th className="w-24 px-4 py-3">Code</th>
@@ -151,10 +151,10 @@ export default function Services() {
                 {rows.map((row) => (
                   <tr
                     key={row._id || row.id}
-                    className="border-b border-slate-100 transition-colors hover:bg-emerald-50/25 dark:border-zinc-800 dark:hover:bg-emerald-950/15"
+                    className="border-b border-slate-100 transition-colors hover:bg-emerald-50/25 dark:border-dm-border dark:hover:bg-emerald-950/15"
                   >
-                    <td className="truncate px-4 py-3 font-medium text-zinc-900 dark:text-white">{row.name}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-400">{row.code}</td>
+                    <td className="truncate px-4 py-3 font-medium text-zinc-900 dark:text-dm-fg">{row.name}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-dm-muted">{row.code}</td>
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -165,8 +165,8 @@ export default function Services() {
                         {row.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{formatBillingCycle(row.billingCycle)}</td>
-                    <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-zinc-900 dark:text-white">
+                    <td className="px-4 py-3 text-zinc-600 dark:text-dm-muted">{formatBillingCycle(row.billingCycle)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-zinc-900 dark:text-dm-fg">
                       {formatINR(row.defaultPrice)}
                     </td>
                     <td className="px-4 py-3 text-right">

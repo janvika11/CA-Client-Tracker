@@ -125,23 +125,23 @@ export default function Reports() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Reports</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Statements and workpapers for FY <span className="font-semibold text-zinc-800 dark:text-zinc-200">{fy}</span>.
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Reports</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">
+            Statements and workpapers for FY <span className="font-semibold text-zinc-800 dark:text-dm-fg">{fy}</span>.
           </p>
           {selectedClient ? (
             <p className="mt-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-              Scope: <span className="text-zinc-900 dark:text-white">{selectedClientName || 'Selected client'}</span> · Aging,
+              Scope: <span className="text-zinc-900 dark:text-dm-fg">{selectedClientName || 'Selected client'}</span> · Aging,
               P&amp;L, and service revenue match this selection.
             </p>
           ) : (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-2 text-xs text-zinc-500 dark:text-dm-muted">
               Choose a client to limit every section below to that practice. Leave as “All clients” for firm-wide totals.
             </p>
           )}
         </div>
         <div className="flex w-full max-w-sm shrink-0 flex-col gap-1.5">
-          <label htmlFor="reports-client-scope" className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label htmlFor="reports-client-scope" className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">
             Client scope
           </label>
           <Select
@@ -162,7 +162,7 @@ export default function Reports() {
 
       <Card className="space-y-3 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
             <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
             Outstanding statement
           </h2>
@@ -198,7 +198,7 @@ export default function Reports() {
 
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
             <PieChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
             Receivables aging (0–30 / 31–60 / 61–90 / 90+)
           </h2>
@@ -213,7 +213,7 @@ export default function Reports() {
         </div>
         <div className="grid gap-2 md:grid-cols-4">
           {Object.entries(aging).map(([bucket, amount]) => (
-            <div key={bucket} className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-800">
+            <div key={bucket} className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-dm-border">
               <p className="text-zinc-500">{bucket}</p>
               <p className="font-semibold">{formatINR(amount)}</p>
             </div>
@@ -223,7 +223,7 @@ export default function Reports() {
 
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
             <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
             Service-wise revenue
           </h2>
@@ -238,7 +238,7 @@ export default function Reports() {
 
       <Card className="space-y-2 shadow-card dark:shadow-card-dark">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-dm-fg">
             <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
             FY P&amp;L summary
           </h2>
@@ -250,9 +250,18 @@ export default function Reports() {
           </div>
         </div>
         <div className="grid gap-2 md:grid-cols-3">
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"><p className="text-sm text-zinc-500">Billed</p><p className="text-xl font-semibold">{formatINR(pnlSummary.billed)}</p></div>
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"><p className="text-sm text-zinc-500">Collected</p><p className="text-xl font-semibold">{formatINR(pnlSummary.collected)}</p></div>
-          <div className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"><p className="text-sm text-zinc-500">Outstanding</p><p className="text-xl font-semibold">{formatINR(pnlSummary.outstanding)}</p></div>
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+            <p className="text-sm text-zinc-500 dark:text-dm-muted">Billed</p>
+            <p className="text-xl font-semibold">{formatINR(pnlSummary.billed)}</p>
+          </div>
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+            <p className="text-sm text-zinc-500 dark:text-dm-muted">Collected</p>
+            <p className="text-xl font-semibold">{formatINR(pnlSummary.collected)}</p>
+          </div>
+          <div className="rounded-lg border border-zinc-200 p-3 dark:border-dm-border dark:bg-dm-bg/35">
+            <p className="text-sm text-zinc-500 dark:text-dm-muted">Outstanding</p>
+            <p className="text-xl font-semibold">{formatINR(pnlSummary.outstanding)}</p>
+          </div>
         </div>
       </Card>
     </div>

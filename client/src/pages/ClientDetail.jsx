@@ -105,8 +105,8 @@ export default function ClientDetail() {
               <ArrowLeft className="h-4 w-4" aria-hidden />
               Clients
             </Link>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">{name}</h1>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">{name}</h1>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-zinc-500 dark:text-dm-muted">
               <Building2 className="h-4 w-4 shrink-0" aria-hidden />
               {client.email || '—'}
             </p>
@@ -117,9 +117,9 @@ export default function ClientDetail() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpi.map((item) => (
           <Card key={item.label} className={cn('border-l-4 p-4 shadow-card dark:shadow-card-dark', item.border)}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{item.label}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">{item.label}</p>
             <p
-              className={`mt-2 font-bold tabular-nums text-zinc-900 dark:text-white ${item.small ? 'text-sm' : 'text-xl'} ${item.valueClass || ''}`}
+              className={`mt-2 font-bold tabular-nums text-zinc-900 dark:text-dm-fg ${item.small ? 'text-sm' : 'text-xl'} ${item.valueClass || ''}`}
             >
               {item.value}
             </p>
@@ -127,7 +127,7 @@ export default function ClientDetail() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-zinc-800 dark:bg-zinc-900/60">
+      <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-dm-border dark:bg-dm-surface/60">
         {tabs.map((item) => (
           <button
             key={item}
@@ -136,8 +136,8 @@ export default function ClientDetail() {
             className={cn(
               'rounded-lg px-4 py-2.5 text-sm font-semibold transition-all',
               tab === item
-                ? 'bg-white text-emerald-800 shadow-sm ring-2 ring-emerald-500/25 dark:bg-zinc-800 dark:text-emerald-300 dark:ring-emerald-500/30'
-                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-white'
+                ? 'bg-white text-emerald-800 shadow-sm ring-2 ring-emerald-500/25 dark:bg-dm-elevated dark:text-emerald-300 dark:ring-emerald-500/30'
+                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-elevated dark:hover:text-dm-fg'
             )}
           >
             {item}
@@ -147,24 +147,24 @@ export default function ClientDetail() {
 
       <Card className="shadow-card dark:shadow-card-dark">
         {tab === 'Overview' && (
-          <div className="grid gap-4 text-sm text-zinc-700 dark:text-zinc-300 sm:grid-cols-2">
+          <div className="grid gap-4 text-sm text-zinc-700 dark:text-dm-fg sm:grid-cols-2">
             <p>
-              <span className="font-medium text-zinc-500 dark:text-zinc-400">Phone</span>
+              <span className="font-medium text-zinc-500 dark:text-dm-muted">Phone</span>
               <br />
               {client.phone || '—'}
             </p>
             <p>
-              <span className="font-medium text-zinc-500 dark:text-zinc-400">PAN</span>
+              <span className="font-medium text-zinc-500 dark:text-dm-muted">PAN</span>
               <br />
               {client.pan || '—'}
             </p>
             <p>
-              <span className="font-medium text-zinc-500 dark:text-zinc-400">GSTIN</span>
+              <span className="font-medium text-zinc-500 dark:text-dm-muted">GSTIN</span>
               <br />
               {client.gstin || '—'}
             </p>
             <p>
-              <span className="font-medium text-zinc-500 dark:text-zinc-400">City</span>
+              <span className="font-medium text-zinc-500 dark:text-dm-muted">City</span>
               <br />
               {client.city || '—'}
             </p>
@@ -173,7 +173,7 @@ export default function ClientDetail() {
         {tab === 'Services' && (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 text-xs font-semibold uppercase text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+              <thead className="border-b border-zinc-200 text-xs font-semibold uppercase text-zinc-500 dark:border-dm-border dark:text-dm-muted">
                 <tr>
                   <th className="py-2 pr-4">Service name</th>
                   <th className="py-2 pr-4 text-right">Custom price</th>
@@ -182,7 +182,7 @@ export default function ClientDetail() {
                   <th className="py-2">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-zinc-200 dark:divide-dm-border">
                 {services.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-zinc-500">
@@ -197,18 +197,18 @@ export default function ClientDetail() {
                     const active = s.isActive !== false;
                     return (
                       <tr key={s._id || s.id}>
-                        <td className="py-3 font-medium text-zinc-900 dark:text-white">{svcName}</td>
-                        <td className="py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-200">
+                        <td className="py-3 font-medium text-zinc-900 dark:text-dm-fg">{svcName}</td>
+                        <td className="py-3 text-right tabular-nums text-zinc-700 dark:text-dm-fg">
                           {formatINR(s.customPrice ?? svc?.defaultPrice)}
                         </td>
-                        <td className="py-3 text-zinc-600 dark:text-zinc-400">{formatBillingCycle(cycle)}</td>
-                        <td className="py-3 text-zinc-600 dark:text-zinc-400">{formatDate(s.startDate)}</td>
+                        <td className="py-3 text-zinc-600 dark:text-dm-muted">{formatBillingCycle(cycle)}</td>
+                        <td className="py-3 text-zinc-600 dark:text-dm-muted">{formatDate(s.startDate)}</td>
                         <td className="py-3">
                           <span
                             className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${
                               active
                                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                                : 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-300'
+                                : 'bg-zinc-500/15 text-zinc-600 dark:text-dm-fg'
                             }`}
                           >
                             {active ? 'Active' : 'Inactive'}
@@ -223,14 +223,14 @@ export default function ClientDetail() {
           </div>
         )}
         {tab === 'Billing History' && (
-          <ul className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-border">
             {billings.length === 0 ? (
               <li className="py-8 text-center text-zinc-500">No billing records.</li>
             ) : (
               billings.map((b) => (
                 <li key={b._id || b.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                  <span className="text-zinc-600 dark:text-zinc-400">{formatDate(b.dueDate)}</span>
-                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(b.amount)}</span>
+                  <span className="text-zinc-600 dark:text-dm-muted">{formatDate(b.dueDate)}</span>
+                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(b.amount)}</span>
                   <span
                     className={cn(
                       'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-black/5 dark:ring-white/10',
@@ -245,15 +245,15 @@ export default function ClientDetail() {
           </ul>
         )}
         {tab === 'Payments' && (
-          <ul className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+          <ul className="divide-y divide-zinc-200 text-sm dark:divide-dm-border">
             {payments.length === 0 ? (
               <li className="py-8 text-center text-zinc-500">No payments recorded.</li>
             ) : (
               payments.map((p) => (
                 <li key={p._id || p.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                  <span className="text-zinc-600 dark:text-zinc-400">{formatDate(p.receivedOn)}</span>
-                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-white">{formatINR(p.amount)}</span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400">{formatPaymentMode(p.mode)}</span>
+                  <span className="text-zinc-600 dark:text-dm-muted">{formatDate(p.receivedOn)}</span>
+                  <span className="font-semibold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(p.amount)}</span>
+                  <span className="text-xs text-zinc-600 dark:text-dm-muted">{formatPaymentMode(p.mode)}</span>
                 </li>
               ))
             )}
@@ -261,9 +261,9 @@ export default function ClientDetail() {
         )}
         {tab === 'Notes' && (
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Client notes</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-dm-fg">Client notes</label>
             <textarea
-              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              className="focus-ring min-h-[160px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-dm-border dark:bg-dm-bg dark:text-dm-fg"
               value={notesDraft}
               onChange={(e) => setNotesDraft(e.target.value)}
               placeholder="Engagement notes, reminders, or context for this client…"

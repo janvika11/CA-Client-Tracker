@@ -149,8 +149,8 @@ export default function BulkUpload() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Bulk upload</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Import clients from CSV or Excel with column mapping.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Bulk upload</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">Import clients from CSV or Excel with column mapping.</p>
         </div>
         <Button variant="outline" className="h-11 shrink-0" onClick={downloadTemplate}>
           Download template
@@ -159,7 +159,7 @@ export default function BulkUpload() {
 
       <Card>
         <label
-          className="focus-ring flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 px-4 py-14 text-center transition hover:border-emerald-400/60 hover:bg-emerald-50/30 dark:border-zinc-600 dark:hover:border-emerald-600/40 dark:hover:bg-emerald-950/20"
+          className="focus-ring flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 px-4 py-14 text-center transition hover:border-emerald-400/60 hover:bg-emerald-50/30 dark:border-dm-border dark:hover:border-emerald-600/40 dark:hover:bg-emerald-950/20"
           onDrop={(event) => {
             event.preventDefault();
             const file = event.dataTransfer.files?.[0];
@@ -226,7 +226,7 @@ export default function BulkUpload() {
                 {validated.map((item) => (
                   <tr
                     key={item.index}
-                    className={`border-t border-zinc-200 dark:border-zinc-800 ${item.errors.length ? 'bg-rose-500/10' : ''}`}
+                    className={`border-t border-zinc-200 dark:border-dm-border ${item.errors.length ? 'bg-rose-500/10' : ''}`}
                   >
                     <td className="p-2">{item.index + 1}</td>
                     <td className="p-2">{item.normalized.name || '-'}</td>

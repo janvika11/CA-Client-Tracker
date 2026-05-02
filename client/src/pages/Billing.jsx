@@ -63,9 +63,9 @@ const matrixCellFill = (status) => {
     case 'overdue':
       return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-rose-500 dark:ring-rose-300/35';
     case 'waived':
-      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-zinc-500 dark:ring-zinc-400/25';
+      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-dm-muted/55 dark:ring-dm-muted/30';
     default:
-      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-zinc-600 dark:ring-zinc-500/25';
+      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-dm-muted/45 dark:ring-dm-muted/30';
   }
 };
 
@@ -78,12 +78,12 @@ function MatrixCell({ cell, onCellClick }) {
   return (
     <div className="group relative flex items-center justify-center py-0.5">
       {!cell ? (
-        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-zinc-800" aria-hidden />
+        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-dm-elevated" aria-hidden />
       ) : (
         <>
           <button
             type="button"
-            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-zinc-500/50' : ''}`}
+            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-dm-muted/45' : ''}`}
             onClick={() => {
               if (!cell._placeholder) onCellClick();
             }}
@@ -101,22 +101,22 @@ function MatrixCell({ cell, onCellClick }) {
           />
           <div
             role="tooltip"
-            className="pointer-events-none invisible absolute bottom-full left-1/2 z-[60] mb-2 w-max min-w-[12rem] max-w-[17rem] -translate-x-1/2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-xs opacity-0 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-zinc-600 dark:bg-zinc-900 dark:shadow-black/40 dark:ring-white/10"
+            className="pointer-events-none invisible absolute bottom-full left-1/2 z-[60] mb-2 w-max min-w-[12rem] max-w-[17rem] -translate-x-1/2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-xs opacity-0 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-dm-border dark:bg-dm-surface dark:shadow-dm-bg/50 dark:ring-white/10"
           >
             {cell._placeholder ? (
               <>
-                <p className="font-semibold text-zinc-900 dark:text-white">Pending</p>
-                <p className="mt-1 leading-snug text-zinc-500 dark:text-zinc-400">No billing entry for this month yet.</p>
+                <p className="font-semibold text-zinc-900 dark:text-dm-fg">Pending</p>
+                <p className="mt-1 leading-snug text-zinc-500 dark:text-dm-muted">No billing entry for this month yet.</p>
               </>
             ) : (
               <>
-                <p className="text-[13px] font-bold tabular-nums text-zinc-900 dark:text-white">{formatINR(cell.amount)}</p>
-                <p className="mt-0.5 text-zinc-600 dark:text-zinc-300">{formatInvoiceStatus(cell.status)}</p>
+                <p className="text-[13px] font-bold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(cell.amount)}</p>
+                <p className="mt-0.5 text-zinc-600 dark:text-dm-fg">{formatInvoiceStatus(cell.status)}</p>
                 {cell.dueDate ? (
-                  <p className="mt-1 text-zinc-500 dark:text-zinc-400">Due {formatDate(cell.dueDate)}</p>
+                  <p className="mt-1 text-zinc-500 dark:text-dm-muted">Due {formatDate(cell.dueDate)}</p>
                 ) : null}
                 {cell._rows?.length > 1 ? (
-                  <p className="mt-1.5 border-t border-zinc-100 pt-1.5 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                  <p className="mt-1.5 border-t border-zinc-100 pt-1.5 text-zinc-500 dark:border-dm-border dark:text-dm-muted">
                     {cell._rows.length} services in this month
                   </p>
                 ) : null}
@@ -176,8 +176,8 @@ export default function Billing() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Billing matrix</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Billing matrix</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">
             FY {fy} — colour shows status; hover a cell for amount and details.
           </p>
         </div>
@@ -194,11 +194,11 @@ export default function Billing() {
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {empty ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-              <Receipt className="h-8 w-8 text-zinc-400 dark:text-zinc-500" aria-hidden />
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
+              <Receipt className="h-8 w-8 text-zinc-400 dark:text-dm-muted" aria-hidden />
             </span>
-            <p className="mt-5 text-base font-semibold text-zinc-900 dark:text-white">No billing for FY {fy}</p>
-            <p className="mt-2 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-5 text-base font-semibold text-zinc-900 dark:text-dm-fg">No billing for FY {fy}</p>
+            <p className="mt-2 max-w-md text-sm text-zinc-500 dark:text-dm-muted">
               Generate invoices for the current month or switch financial year in the header to see historical data.
             </p>
             <Button className="mt-6" onClick={() => generateM.mutate({ month, year })}>
@@ -209,19 +209,19 @@ export default function Billing() {
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400">
-                  <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-zinc-800 dark:bg-zinc-800/90">
+                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
+                  <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-dm-border dark:bg-dm-elevated/90">
                     Client
                   </th>
                   {MONTH_COLUMNS.map((m) => (
-                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-zinc-200">
+                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-fg">
                       <span className="inline-flex min-w-[3.5rem] flex-col items-center gap-0.5">
                         <CalendarRange className="mx-auto h-3.5 w-3.5 opacity-60" aria-hidden />
                         {m.label}
                       </span>
                     </th>
                   ))}
-                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-200">
+                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-fg">
                     Outstanding
                   </th>
                 </tr>
@@ -232,10 +232,10 @@ export default function Billing() {
                   return (
                     <tr
                       key={clientRow.clientId || clientRow._id}
-                      className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
+                      className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-dm-border dark:hover:bg-dm-elevated/40"
                     >
                       <td
-                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg"
                         title={clientRow.clientName || clientRow.name}
                       >
                         <span className="block truncate">{clientRow.clientName || clientRow.name}</span>
@@ -269,7 +269,7 @@ export default function Billing() {
                         );
                       })}
                       <td
-                        className={`sticky right-0 z-10 border-l border-zinc-200 bg-white px-4 py-2 text-right text-sm font-semibold tabular-nums dark:border-zinc-800 dark:bg-zinc-900 ${bal > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+                        className={`sticky right-0 z-10 border-l border-zinc-200 bg-white px-4 py-2 text-right text-sm font-semibold tabular-nums dark:border-dm-border dark:bg-dm-surface ${bal > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}
                       >
                         {formatINR(bal)}
                       </td>
@@ -278,19 +278,19 @@ export default function Billing() {
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold dark:border-zinc-600 dark:bg-zinc-800/80">
-                  <td className="sticky left-0 z-10 border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white">
+                <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold dark:border-dm-border dark:bg-dm-elevated/80">
+                  <td className="sticky left-0 z-10 border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-900 dark:border-dm-border dark:bg-dm-elevated/80 dark:text-dm-fg">
                     Totals
                   </td>
                   {monthTotals.map((total, idx) => (
                     <td
                       key={MONTH_COLUMNS[idx].label}
-                      className="px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-zinc-200"
+                      className="px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-dm-fg"
                     >
                       {total > 0 ? formatINR(total) : '—'}
                     </td>
                   ))}
-                  <td className="sticky right-0 z-10 border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-sm tabular-nums text-rose-700 dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-rose-300">
+                  <td className="sticky right-0 z-10 border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-sm tabular-nums text-rose-700 dark:border-dm-border dark:bg-dm-elevated/80 dark:text-rose-300">
                     {formatINR(grandOutstanding)}
                   </td>
                 </tr>
@@ -302,17 +302,17 @@ export default function Billing() {
 
       {selectedCell && !selectedCell._placeholder && (
         <Card className="shadow-card dark:shadow-card-dark">
-          <h3 className="font-semibold text-zinc-900 dark:text-white">
+          <h3 className="font-semibold text-zinc-900 dark:text-dm-fg">
             {selectedCell.clientName} — {selectedCell.month}
           </h3>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Total: <span className="font-semibold text-zinc-900 dark:text-white">{formatINR(selectedCell.amount)}</span> · Status:{' '}
+          <p className="mt-2 text-sm text-zinc-600 dark:text-dm-muted">
+            Total: <span className="font-semibold text-zinc-900 dark:text-dm-fg">{formatINR(selectedCell.amount)}</span> · Status:{' '}
             <span>{formatInvoiceStatus(selectedCell.status)}</span> · Due: {formatDate(selectedCell.dueDate)}
           </p>
           {selectedCell._rows?.length > 1 && (
-            <ul className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-zinc-700">
+            <ul className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-dm-border">
               {selectedCell._rows.map((row, idx) => (
-                <li key={`${row.service}-${idx}`} className="flex justify-between gap-4 text-zinc-700 dark:text-zinc-300">
+                <li key={`${row.service}-${idx}`} className="flex justify-between gap-4 text-zinc-700 dark:text-dm-fg">
                   <span>{row.service}</span>
                   <span className="tabular-nums font-medium">
                     {formatINR(row.amount)}{' '}

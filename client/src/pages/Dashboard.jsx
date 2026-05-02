@@ -191,11 +191,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-dm-border sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{welcomeDate}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
-          <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-zinc-400">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-dm-fg">Dashboard</h1>
+          <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-dm-muted">
             Collections, receivables exposure, and recent practice activity at a glance.
           </p>
         </div>
@@ -211,9 +211,9 @@ export default function Dashboard() {
                   <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{kpi.label}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">{kpi.label}</p>
                   <p
-                    className={`mt-1 font-bold tabular-nums text-zinc-900 dark:text-white ${kpi.small ? 'text-sm leading-relaxed' : 'text-2xl'}`}
+                    className={`mt-1 font-bold tabular-nums text-zinc-900 dark:text-dm-fg ${kpi.small ? 'text-sm leading-relaxed' : 'text-2xl'}`}
                   >
                     {kpi.value}
                   </p>
@@ -228,8 +228,8 @@ export default function Dashboard() {
         <Card className="h-[340px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Monthly billed vs collected</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Last six months</p>
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Monthly billed vs collected</h2>
+              <p className="text-xs text-zinc-500 dark:text-dm-muted">Last six months</p>
             </div>
             <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden />
           </div>
@@ -247,8 +247,8 @@ export default function Dashboard() {
 
         <Card className="h-[340px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Outstanding aging</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">By days past due</p>
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Outstanding aging</h2>
+            <p className="text-xs text-zinc-500 dark:text-dm-muted">By days past due</p>
           </div>
           <ResponsiveContainer width="100%" height="88%">
             <PieChart>
@@ -274,8 +274,8 @@ export default function Dashboard() {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="h-[380px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Top clients by outstanding</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Highest receivable balance</p>
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Top clients by outstanding</h2>
+            <p className="text-xs text-zinc-500 dark:text-dm-muted">Highest receivable balance</p>
           </div>
           <ResponsiveContainer width="100%" height="88%">
             <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
@@ -290,8 +290,8 @@ export default function Dashboard() {
         <Card className="h-[380px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Service revenue (collected)</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">By service line</p>
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Service revenue (collected)</h2>
+              <p className="text-xs text-zinc-500 dark:text-dm-muted">By service line</p>
             </div>
             <IndianRupee className="h-4 w-4 text-zinc-400" aria-hidden />
           </div>
@@ -310,19 +310,19 @@ export default function Dashboard() {
       </div>
 
       <Card className="shadow-card dark:shadow-card-dark">
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Recent activity</h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Payments and overdue notices</p>
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Recent activity</h2>
+        <p className="text-xs text-zinc-500 dark:text-dm-muted">Payments and overdue notices</p>
 
         {activityFeed.length === 0 ? (
-          <div className="mt-8 flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">
-            <Wallet className="h-10 w-10 text-zinc-300 dark:text-zinc-600" aria-hidden />
-            <p className="mt-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">No recent activity yet</p>
+          <div className="mt-8 flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-dm-border">
+            <Wallet className="h-10 w-10 text-zinc-300 dark:text-dm-muted" aria-hidden />
+            <p className="mt-3 text-sm font-medium text-zinc-600 dark:text-dm-muted">No recent activity yet</p>
             <p className="mt-1 max-w-sm text-xs text-zinc-500">Record payments or generate billing to see a live feed here.</p>
           </div>
         ) : (
           <ul className="relative mt-6 space-y-0 pl-2">
             <span
-              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-zinc-700"
+              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-dm-border"
               aria-hidden
             />
             {activityFeed.map((item, index) => {
@@ -331,7 +331,7 @@ export default function Dashboard() {
               return (
                 <li key={`${item.type}-${index}`} className="relative flex gap-4 pb-6 last:pb-0">
                   <span
-                    className={`relative z-[1] flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold shadow-md ring-4 ring-white dark:ring-zinc-900 ${tone}`}
+                    className={`relative z-[1] flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold shadow-md ring-4 ring-white dark:ring-dm-bg ${tone}`}
                   >
                     {initials}
                   </span>
@@ -339,13 +339,13 @@ export default function Dashboard() {
                     <p
                       className={`text-sm font-medium leading-snug ${
                         item.type === 'payment'
-                          ? 'text-zinc-800 dark:text-zinc-100'
+                          ? 'text-zinc-800 dark:text-dm-fg'
                           : 'text-rose-800 dark:text-rose-200'
                       }`}
                     >
                       {item.text}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{formatDate(item.date)}</p>
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-dm-muted">{formatDate(item.date)}</p>
                   </div>
                 </li>
               );

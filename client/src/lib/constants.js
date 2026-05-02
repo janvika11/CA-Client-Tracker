@@ -19,7 +19,7 @@ export const MONTH_COLUMNS = [
 ];
 
 export const SIDEBAR_LINKS = [
-  { to: '/', label: 'Dashboard' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/clients', label: 'Clients' },
   { to: '/bulk-upload', label: 'Bulk Upload' },
   { to: '/services', label: 'Services' },

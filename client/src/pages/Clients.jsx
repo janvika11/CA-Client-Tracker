@@ -55,11 +55,11 @@ function clientLifecyclePillClass(status) {
     case 'active':
       return 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-600/15 dark:bg-emerald-950/55 dark:text-emerald-300 dark:ring-emerald-500/25';
     case 'inactive':
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-500/15 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-white/10';
+      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-500/15 dark:bg-dm-elevated dark:text-dm-fg dark:ring-white/10';
     case 'onboarding':
       return 'bg-sky-100 text-sky-900 ring-1 ring-sky-600/20 dark:bg-sky-950/45 dark:text-sky-200 dark:ring-sky-500/25';
     default:
-      return 'bg-zinc-100 text-zinc-700 ring-1 ring-zinc-500/10 dark:bg-zinc-800 dark:text-zinc-300';
+      return 'bg-zinc-100 text-zinc-700 ring-1 ring-zinc-500/10 dark:bg-dm-elevated dark:text-dm-fg';
   }
 }
 
@@ -190,7 +190,7 @@ export default function Clients() {
   };
 
   const statClass =
-    'rounded-lg border border-slate-200/90 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
+    'rounded-lg border border-slate-200/90 bg-white p-4 shadow-sm dark:border-dm-border dark:bg-dm-surface';
 
   const saving = createM.isPending || updateM.isPending;
   const formError = [createM.error, updateM.error]
@@ -201,8 +201,8 @@ export default function Clients() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Clients</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Clients</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">
             Manage relationships, tags, and receivables by client.
           </p>
         </div>
@@ -219,23 +219,23 @@ export default function Clients() {
               <Users className="h-5 w-5" strokeWidth={1.75} aria-hidden />
             </span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total clients</p>
-              <p className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">{rows.length}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">Total clients</p>
+              <p className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-dm-fg">{rows.length}</p>
             </div>
           </div>
         </div>
         <div className={`${statClass} border-l-4 border-l-sky-600 dark:border-l-sky-500`}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Active</p>
-          <p className="mt-2 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">{activeCount}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">Active</p>
+          <p className="mt-2 text-2xl font-bold tabular-nums text-zinc-900 dark:text-dm-fg">{activeCount}</p>
         </div>
         <div className={`${statClass} border-l-4 border-l-rose-500 dark:border-l-rose-400`}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Outstanding total</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">Outstanding total</p>
           <p className="mt-2 text-2xl font-bold tabular-nums text-rose-700 dark:text-rose-300">{formatINR(outstanding)}</p>
         </div>
       </div>
 
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
-        <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
+        <div className="border-b border-slate-200 p-4 dark:border-dm-border">
           <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
             <div className="relative xl:col-span-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
@@ -273,7 +273,7 @@ export default function Clients() {
               Density: {compact ? 'Compact' : 'Comfortable'}
             </Button>
             {selected.length > 0 && (
-              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm dark:border-dm-border dark:bg-dm-elevated">
                 <span className="font-medium">{selected.length} selected</span>
                 <Button size="sm" variant="outline">
                   Export
@@ -288,7 +288,7 @@ export default function Clients() {
 
         <div className="max-h-[560px] overflow-auto">
           <table className="min-w-full table-fixed border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/95 text-[11px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-400">
+            <thead className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/95 text-[11px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur-sm dark:border-dm-border dark:bg-dm-surface/95 dark:text-dm-muted">
               <tr>
                 <th className="w-10 px-3 py-3 pl-4">#</th>
                 <th className="min-w-[200px] px-3 py-3 xl:w-[28%]">Client</th>
@@ -302,13 +302,13 @@ export default function Clients() {
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td className="px-6 py-16 text-center dark:text-zinc-300" colSpan={7}>
+                  <td className="px-6 py-16 text-center dark:text-dm-fg" colSpan={7}>
                     <div className="mx-auto flex max-w-md flex-col items-center">
                       <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 ring-4 ring-emerald-100 dark:bg-emerald-950/40 dark:ring-emerald-900/30">
                         <Users className="h-8 w-8 text-emerald-600 dark:text-emerald-400" aria-hidden />
                       </span>
-                      <p className="mt-5 text-lg font-semibold text-slate-900 dark:text-white">No clients here yet</p>
-                      <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-zinc-400">
+                      <p className="mt-5 text-lg font-semibold text-slate-900 dark:text-dm-fg">No clients here yet</p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-dm-muted">
                         {search || status || city || tag || service
                           ? 'Nothing matches those filters — try adjusting search or clearing filters.'
                           : 'Create your first client to start billing and collections.'}
@@ -330,12 +330,12 @@ export default function Clients() {
                 return (
                   <tr
                     key={id}
-                    className="group border-t border-zinc-200 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                    className="group border-t border-zinc-200 transition-colors hover:bg-zinc-50 dark:border-dm-border dark:hover:bg-dm-elevated/50"
                   >
                     <td className={`px-4 ${compact ? 'py-2' : 'py-3.5'}`}>
                       <input
                         type="checkbox"
-                        className="focus-ring rounded border-zinc-300 dark:border-zinc-600"
+                        className="focus-ring rounded border-zinc-300 dark:border-dm-border"
                         checked={selected.includes(id)}
                         onChange={() => toggleRow(id)}
                       />
@@ -354,7 +354,7 @@ export default function Clients() {
                           >
                             {name}
                           </Link>
-                          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{row.email || '—'}</p>
+                          <p className="truncate text-xs text-zinc-500 dark:text-dm-muted">{row.email || '—'}</p>
                         </div>
                       </div>
                     </td>
@@ -368,8 +368,8 @@ export default function Clients() {
                         {formatClientStatus(row.status)}
                       </span>
                     </td>
-                    <td className={`truncate px-3 text-slate-600 dark:text-zinc-400 ${compact ? 'py-2' : 'py-3.5'}`}>{row.city || '—'}</td>
-                    <td className={`hidden max-w-0 truncate px-3 text-slate-600 dark:text-zinc-400 md:table-cell ${compact ? 'py-2' : 'py-3.5'}`}>
+                    <td className={`truncate px-3 text-slate-600 dark:text-dm-muted ${compact ? 'py-2' : 'py-3.5'}`}>{row.city || '—'}</td>
+                    <td className={`hidden max-w-0 truncate px-3 text-slate-600 dark:text-dm-muted md:table-cell ${compact ? 'py-2' : 'py-3.5'}`}>
                       {(row.tags || []).join(', ') || '—'}
                     </td>
                     <td
@@ -381,14 +381,14 @@ export default function Clients() {
                       <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100">
                         <Link
                           to={`/clients/${id}`}
-                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-emerald-600 dark:hover:text-emerald-300"
+                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-dm-border dark:bg-dm-surface dark:hover:border-emerald-600 dark:hover:text-emerald-300"
                           title="View"
                         >
                           <Eye className="h-4 w-4" aria-hidden />
                         </Link>
                         <button
                           type="button"
-                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-emerald-600 dark:hover:text-emerald-300"
+                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-dm-border dark:bg-dm-surface dark:hover:border-emerald-600 dark:hover:text-emerald-300"
                           title="Edit"
                           onClick={() => openEdit(row)}
                         >
@@ -396,7 +396,7 @@ export default function Clients() {
                         </button>
                         <button
                           type="button"
-                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-rose-600 transition hover:border-rose-300 hover:text-rose-700 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:border-rose-600 dark:hover:text-rose-300"
+                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-rose-600 transition hover:border-rose-300 hover:text-rose-700 dark:border-dm-border dark:bg-dm-surface dark:hover:border-rose-600 dark:hover:text-rose-300"
                           title="Delete"
                           onClick={() => onDelete(row)}
                           disabled={deleteM.isPending}

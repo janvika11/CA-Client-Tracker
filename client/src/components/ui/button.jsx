@@ -9,9 +9,9 @@ const buttonVariants = cva(
         default:
           'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:active:bg-emerald-600',
         outline:
-          'border border-zinc-300 bg-white px-4 py-2 text-zinc-800 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40',
+          'border border-zinc-300 bg-white px-4 py-2 text-zinc-800 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-dm-border dark:bg-dm-surface dark:text-dm-fg dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40',
         ghost:
-          'px-3 py-2 text-zinc-700 hover:bg-emerald-50 hover:text-emerald-900 dark:text-zinc-300 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-100',
+          'px-3 py-2 text-zinc-700 hover:bg-emerald-50 hover:text-emerald-900 dark:text-dm-fg dark:hover:bg-emerald-950/30 dark:hover:text-emerald-100',
         success: 'bg-emerald-600 px-4 py-2 text-white shadow-sm hover:bg-emerald-700',
         danger: 'bg-rose-600 px-4 py-2 text-white shadow-sm hover:bg-rose-700',
       },

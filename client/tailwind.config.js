@@ -8,6 +8,14 @@ export default {
         sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
+        dm: {
+          bg: '#0f172a',
+          surface: '#1e293b',
+          elevated: '#273548',
+          border: '#334155',
+          muted: '#94a3b8',
+          fg: '#f1f5f9',
+        },
         paid: '#059669',
         partial: '#f59e0b',
         overdue: '#f43f5e',
@@ -26,7 +34,8 @@ export default {
       },
       boxShadow: {
         card: '0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06)',
-        'card-dark': '0 1px 2px rgb(0 0 0 / 0.2), 0 4px 16px rgb(0 0 0 / 0.35)',
+        'card-dark':
+          '0 1px 2px rgb(15 23 42 / 0.35), 0 6px 24px rgb(15 23 42 / 0.45)',
       },
     },
   },

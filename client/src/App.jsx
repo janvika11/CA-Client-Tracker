@@ -15,13 +15,15 @@ import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import Services from './pages/Services';
 import PlaceholderPage from './pages/PlaceholderPage';
+import Landing from './pages/Landing';
 
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/clients/:clientId" element={<ClientDetail />} />
         <Route path="/bulk-upload" element={<BulkUpload />} />
@@ -60,8 +62,8 @@ function ProtectedLayout() {
 
   if (query.isLoading) {
     return (
-      <div className="flex min-h-screen bg-slate-50 dark:bg-zinc-950">
-        <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:block">
+      <div className="flex min-h-screen bg-slate-50 dark:bg-dm-bg">
+        <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-dm-border dark:bg-dm-bg lg:block">
           <div className="space-y-3 p-4">
             <SkeletonBlock className="h-12 w-full" />
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (

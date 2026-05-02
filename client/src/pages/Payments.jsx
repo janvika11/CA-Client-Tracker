@@ -17,7 +17,7 @@ const MODES = ['cash', 'upi', 'bank_transfer', 'cheque'];
 function paymentModeBadgeClass(mode) {
   switch (mode) {
     case 'cash':
-      return 'bg-slate-200/90 text-slate-900 dark:bg-zinc-700 dark:text-zinc-100';
+      return 'bg-slate-200/90 text-slate-900 dark:bg-dm-elevated dark:text-dm-fg';
     case 'upi':
       return 'bg-violet-100 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200';
     case 'bank_transfer':
@@ -25,7 +25,7 @@ function paymentModeBadgeClass(mode) {
     case 'cheque':
       return 'bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100';
     default:
-      return 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300';
+      return 'bg-slate-100 text-slate-700 dark:bg-dm-elevated dark:text-dm-fg';
   }
 }
 
@@ -215,8 +215,8 @@ export default function Payments() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Payments</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">FIFO allocation, receipts, and collection history.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-dm-fg">Payments</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-dm-muted">FIFO allocation, receipts, and collection history.</p>
         </div>
         <Button className="h-11 shrink-0 px-5" onClick={() => setOpen(true)}>
           Record payment
@@ -224,10 +224,10 @@ export default function Payments() {
       </div>
 
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
-        <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
+        <div className="border-b border-slate-200 p-4 dark:border-dm-border">
           <div className="grid gap-2 md:grid-cols-3">
             <Input
-              className="border-slate-200 dark:border-zinc-700"
+              className="border-slate-200 dark:border-dm-border"
               placeholder="Search reference / client…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -244,7 +244,7 @@ export default function Payments() {
         </div>
         <div className="overflow-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400">
+            <thead className="border-b border-slate-100 bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-dm-border dark:bg-dm-elevated/90 dark:text-dm-muted">
               <tr>
                 <th className="w-32 px-4 py-3">Date</th>
                 <th className="min-w-[10rem] px-4 py-3">Client</th>
@@ -256,13 +256,13 @@ export default function Payments() {
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td className="px-6 py-16 text-center dark:text-zinc-300" colSpan={5}>
+                  <td className="px-6 py-16 text-center dark:text-dm-fg" colSpan={5}>
                     <div className="mx-auto flex max-w-sm flex-col items-center">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-elevated">
                         <Wallet className="h-7 w-7 text-zinc-400" aria-hidden />
                       </span>
-                      <p className="mt-4 font-semibold text-zinc-900 dark:text-white">No payments yet</p>
-                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Record a receipt to start your ledger.</p>
+                      <p className="mt-4 font-semibold text-zinc-900 dark:text-dm-fg">No payments yet</p>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-dm-muted">Record a receipt to start your ledger.</p>
                     </div>
                   </td>
                 </tr>
@@ -270,11 +270,11 @@ export default function Payments() {
               {rows.map((row) => (
                 <tr
                   key={row._id || row.id}
-                  className="border-b border-slate-100 transition-colors hover:bg-emerald-50/30 dark:border-zinc-800 dark:hover:bg-emerald-950/15"
+                  className="border-b border-slate-100 transition-colors hover:bg-emerald-50/30 dark:border-dm-border dark:hover:bg-emerald-950/15"
                 >
-                  <td className="px-4 py-3 text-slate-600 dark:text-zinc-400">{formatDate(row.receivedOn)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{row.clientId?.name || '—'}</td>
-                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900 dark:text-white">{formatINR(row.amount)}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-dm-muted">{formatDate(row.receivedOn)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-dm-fg">{row.clientId?.name || '—'}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900 dark:text-dm-fg">{formatINR(row.amount)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(
@@ -285,7 +285,7 @@ export default function Payments() {
                       {formatPaymentMode(row.mode)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.reference}</td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-dm-muted">{row.reference}</td>
                 </tr>
               ))}
             </tbody>
@@ -322,7 +322,7 @@ export default function Payments() {
           </Select>
 
           {clientId && (
-            <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
+            <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm dark:border-dm-border dark:bg-dm-bg/50">
               {unpaidRows.length === 0 ? (
                 <p className="text-zinc-500">No unpaid entries for this client.</p>
               ) : (
@@ -332,7 +332,7 @@ export default function Payments() {
                     const id = item._id || item.id;
                     const checked = checkedInvoices.includes(id);
                     return (
-                      <label key={id} className="mb-1 flex items-center gap-2 rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                      <label key={id} className="mb-1 flex items-center gap-2 rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-dm-elevated">
                         <input
                           type="checkbox"
                           className="focus-ring"
@@ -358,7 +358,7 @@ export default function Payments() {
           <Input placeholder="Reference" value={reference} onChange={(e) => setReference(e.target.value)} required />
           <Input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} required />
 
-          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800/80">
+          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3 text-sm dark:border-dm-border dark:bg-dm-elevated/80">
             <p className="font-medium">FIFO allocation preview</p>
             <p className="mt-1">Allocated: {formatINR(Number(amount || 0) - allocationState.remaining)}</p>
             <p>Unallocated: {formatINR(allocationState.remaining)}</p>

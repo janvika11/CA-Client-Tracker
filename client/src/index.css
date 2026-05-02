@@ -10,17 +10,17 @@
   }
 
   body {
-    @apply bg-slate-50 font-sans text-zinc-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-100;
+    @apply bg-slate-50 font-sans text-zinc-900 antialiased transition-colors duration-200 dark:bg-dm-bg dark:text-dm-fg;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 
   * {
-    @apply border-zinc-200 dark:border-zinc-800;
+    @apply border-zinc-200 dark:border-dm-border;
   }
 }
 
 @layer utilities {
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dm-bg;
   }
 }

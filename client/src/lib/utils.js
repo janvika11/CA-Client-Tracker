@@ -113,6 +113,6 @@ export const getStatusTone = (status) => {
     case 'overdue':
       return 'bg-rose-500/15 text-rose-500';
     default:
-      return 'bg-zinc-400/15 text-zinc-600 dark:text-zinc-300';
+      return 'bg-zinc-400/15 text-zinc-600 dark:text-dm-muted';
   }
 };

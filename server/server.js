@@ -25,17 +25,6 @@ dotenv.config();
 const app = express();
 
 const envCorsOrigin = (process.env.CORS_ORIGIN || '').trim();
-const defaultCorsOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'https://ca-client-tracker.vercel.app',
-];
-const allowedOrigins =
-  envCorsOrigin && !defaultCorsOrigins.includes(envCorsOrigin)
-    ? [...defaultCorsOrigins, envCorsOrigin]
-    : defaultCorsOrigins;
 
 // Security Middleware (CORP same-origin can block credentialed cross-origin fetches)
 app.use(
@@ -47,13 +36,21 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin) {
-        return callback(null, true);
+      const allowed = [
+        'https://ca-client-tracker.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+      ];
+      if (envCorsOrigin && !allowed.includes(envCorsOrigin)) {
+        allowed.push(envCorsOrigin);
       }
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
       }
-      return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],

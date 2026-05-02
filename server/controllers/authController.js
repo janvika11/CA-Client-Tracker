@@ -21,10 +21,16 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.validatedData;
 
-    // Non-production: allow any credentials unless explicitly disabled (DEV_ALLOW_ANY_LOGIN=false)
+    // Treat hosted deploys as production-like even if NODE_ENV is unset (Render sets RENDER=true).
+    const isProductionLike =
+      process.env.NODE_ENV === 'production' ||
+      process.env.RENDER === 'true' ||
+      process.env.RAILWAY_ENVIRONMENT === 'production' ||
+      process.env.FLY_APP_NAME; // Fly.io
+
+    // Local dev only: any-password login unless explicitly disabled.
     const devBypass =
-      process.env.NODE_ENV !== 'production' &&
-      process.env.DEV_ALLOW_ANY_LOGIN !== 'false';
+      !isProductionLike && process.env.DEV_ALLOW_ANY_LOGIN !== 'false';
 
     let user = null;
 
@@ -38,7 +44,7 @@ export const login = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           message:
-            'No users in database. Run: cd server && npm run seed (then restart the server).'
+            'No users in this database. Local: run `cd server && npm run seed` then restart. Cloud (Render etc.): open a shell with the same MONGODB_URI and run `node seed.js` once, then sign in with the seeded account (e.g. demo@ca.com).'
         });
       }
     } else {
@@ -63,7 +69,7 @@ export const login = async (req, res, next) => {
 
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: Boolean(isProductionLike),
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });

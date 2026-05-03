@@ -158,7 +158,8 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
       value: formatINR(totalOutstanding),
       border: 'border-l-rose-500 dark:border-l-dm-danger',
       icon: DashboardIcons.AlertTriangle,
-      iconWrap: 'bg-rose-100 text-rose-700 dark:bg-[#450a0a]/50 dark:text-dm-danger dark:shadow-[inset_0_0_0_1px_rgba(248,113,113,0.35)]',
+      iconWrap:
+        'bg-rose-100 text-rose-700 dark:bg-[#450a0a]/50 dark:text-dm-danger dark:shadow-[inset_0_0_0_1px_rgba(248,113,113,0.35)]',
       valueClass: 'dark:text-dm-danger',
     },
     {

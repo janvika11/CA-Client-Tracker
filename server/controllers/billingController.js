@@ -4,13 +4,20 @@ import { paginationSchema } from '../utils/validators.js';
 
 export const generateBilling = async (req, res, next) => {
   try {
-    const { month, year } = req.body;
+    const month = Number.parseInt(String(req.body?.month ?? ''), 10);
+    const year = Number.parseInt(String(req.body?.year ?? ''), 10);
 
-    // Validate month and year
-    if (!month || !year || month < 1 || month > 12 || year < 2020 || year > 2099) {
+    if (
+      !Number.isFinite(month) ||
+      !Number.isFinite(year) ||
+      month < 1 ||
+      month > 12 ||
+      year < 2020 ||
+      year > 2099
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid month or year'
+        message: 'Invalid month or year (send numeric month 1–12 and year, e.g. { "month": 5, "year": 2026 })',
       });
     }
 

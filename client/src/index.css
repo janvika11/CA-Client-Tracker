@@ -33,8 +33,8 @@
   }
 
   .dark select option {
-    background-color: #1e293b;
-    color: #e2e8f0;
+    background-color: #16141f;
+    color: #e4e4e7;
   }
 }
 
@@ -46,5 +46,6 @@
   .dark .focus-ring:focus-visible {
     --tw-ring-color: theme('colors.dm.accent');
     --tw-ring-offset-color: theme('colors.dm.bg');
+    --tw-ring-opacity: 0.85;
   }
 }

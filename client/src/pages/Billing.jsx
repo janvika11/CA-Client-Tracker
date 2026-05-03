@@ -53,19 +53,20 @@ const getMonthCell = (clientRow, month) => {
   return aggregateMonthRows(rows);
 };
 
+/** Light: solid status hues. Dark: brighter fills + luminous rings so cells read clearly on dm.bg. */
 const matrixCellFill = (status) => {
   switch (status) {
     case 'paid':
-      return 'bg-emerald-600 ring-2 ring-emerald-700/35 shadow-sm dark:bg-[#064e3b] dark:ring-[#059669]/50';
+      return 'bg-emerald-600 ring-2 ring-emerald-700/35 shadow-sm dark:bg-emerald-500 dark:ring-emerald-200/45 dark:shadow-[0_0_18px_rgba(34,197,94,0.42)]';
     case 'partially_paid':
     case 'partial':
-      return 'bg-amber-500 ring-2 ring-amber-700/35 shadow-sm dark:bg-[#451a03] dark:ring-[#fbbf24]/35';
+      return 'bg-amber-500 ring-2 ring-amber-700/35 shadow-sm dark:bg-amber-400 dark:ring-amber-100/50 dark:shadow-[0_0_18px_rgba(251,191,36,0.38)]';
     case 'overdue':
-      return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-[#450a0a] dark:ring-[#f87171]/35';
+      return 'bg-rose-600 ring-2 ring-rose-800/35 shadow-sm dark:bg-rose-500 dark:ring-rose-100/45 dark:shadow-[0_0_18px_rgba(251,113,133,0.42)]';
     case 'waived':
-      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-dm-dim dark:ring-dm-border';
+      return 'bg-slate-400 ring-2 ring-slate-600/30 dark:bg-slate-500 dark:ring-slate-200/35 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]';
     default:
-      return 'bg-slate-300 ring-2 ring-slate-500/25 dark:bg-dm-surface dark:ring-[#334155] dark:border dark:border-dm-border';
+      return 'bg-slate-300 ring-2 ring-slate-500/25 shadow-sm dark:bg-slate-600 dark:ring-slate-300/35 dark:border dark:border-slate-400/45';
   }
 };
 
@@ -133,10 +134,36 @@ export default function Billing() {
   const fy = useUIStore((state) => state.currentFY);
   const queryClient = useQueryClient();
   const [selectedCell, setSelectedCell] = useState(null);
+  const [generateNotice, setGenerateNotice] = useState(null);
   const matrixQ = useQuery({ queryKey: ['billing', 'matrix', fy], queryFn: () => getBillingMatrix(fy) });
   const generateM = useMutation({
     mutationFn: generateBilling,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['billing', 'matrix', fy] }),
+    onSuccess: (data) => {
+      const created = Number(data?.created ?? 0);
+      const m = data?.month;
+      const y = data?.year;
+      const fyLabel = data?.fy ?? '';
+      if (created > 0) {
+        setGenerateNotice({
+          kind: 'success',
+          text: `Created ${created} billing ${created === 1 ? 'entry' : 'entries'} for ${m}/${y}${fyLabel ? ` (FY ${fyLabel})` : ''}.`,
+        });
+      } else {
+        setGenerateNotice({
+          kind: 'info',
+          text: `No new entries for ${m}/${y}. Possible reasons: no active client-services, billing already exists for that period, billing cycle does not include this month (e.g. quarterly / annual), or services are one-time.`,
+        });
+      }
+      void queryClient.invalidateQueries({ queryKey: ['billing', 'matrix', fy] });
+      void queryClient.invalidateQueries({ queryKey: ['billing'] });
+    },
+    onError: (err) => {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Could not generate billing. Check that you are signed in and the API is reachable.';
+      setGenerateNotice({ kind: 'error', text: msg });
+    },
   });
 
   const rows = matrixQ.data?.matrix || matrixQ.data?.clients || matrixQ.data || [];
@@ -182,14 +209,42 @@ export default function Billing() {
           </p>
         </div>
         <Button
+          type="button"
           variant="success"
           className="h-11 shrink-0 px-5"
-          onClick={() => generateM.mutate({ month, year })}
+          onClick={() => {
+            setGenerateNotice(null);
+            generateM.mutate({ month, year });
+          }}
           disabled={generateM.isPending}
         >
           {generateM.isPending ? 'Generating…' : 'Generate billing (current month)'}
         </Button>
       </div>
+
+      {generateNotice ? (
+        <div
+          role="status"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            generateNotice.kind === 'error'
+              ? 'border-rose-200 bg-rose-50 text-rose-900 dark:border-dm-danger/40 dark:bg-[#450a0a]/35 dark:text-dm-danger'
+              : generateNotice.kind === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-200'
+                : 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-800/40 dark:bg-amber-950/35 dark:text-amber-100'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p>{generateNotice.text}</p>
+            <button
+              type="button"
+              className="shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold opacity-80 hover:opacity-100"
+              onClick={() => setGenerateNotice(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
         {empty ? (
@@ -201,27 +256,35 @@ export default function Billing() {
             <p className="mt-2 max-w-md text-sm text-zinc-500 dark:text-dm-muted">
               Generate invoices for the current month or switch financial year in the header to see historical data.
             </p>
-            <Button className="mt-6" onClick={() => generateM.mutate({ month, year })}>
-              Generate billing
+            <Button
+              type="button"
+              className="mt-6"
+              disabled={generateM.isPending}
+              onClick={() => {
+                setGenerateNotice(null);
+                generateM.mutate({ month, year });
+              }}
+            >
+              {generateM.isPending ? 'Generating…' : 'Generate billing'}
             </Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
+                <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-muted">
                   <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-dm-subtle dark:bg-dm-surface">
                     Client
                   </th>
                   {MONTH_COLUMNS.map((m) => (
-                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-dim">
+                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-muted">
                       <span className="inline-flex min-w-[3.5rem] flex-col items-center gap-0.5">
-                        <CalendarRange className="mx-auto h-3.5 w-3.5 opacity-60" aria-hidden />
+                        <CalendarRange className="mx-auto h-3.5 w-3.5 text-zinc-400 opacity-70 dark:text-dm-muted dark:opacity-90" aria-hidden />
                         {m.label}
                       </span>
                     </th>
                   ))}
-                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-dim">
+                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-muted">
                     Outstanding
                   </th>
                 </tr>

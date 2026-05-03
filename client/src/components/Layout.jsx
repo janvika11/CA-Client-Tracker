@@ -108,7 +108,7 @@ export default function Layout({ children }) {
       <div className="border-b border-slate-200 px-4 py-5 dark:border-dm-border">
         <Link
           to="/dashboard"
-          className="block rounded-lg transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
+          className="block rounded-lg transition hover:bg-slate-50 dark:hover:bg-white/[0.04]"
           onClick={() => setMobileNav(false)}
         >
           <p className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-[#059669] dark:text-dm-accent">
@@ -131,8 +131,8 @@ export default function Layout({ children }) {
                 cn(
                   'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-slate-100 text-slate-900 dark:bg-dm-hover dark:text-dm-fg'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-dm-hover/70 dark:hover:text-dm-table'
+                    ? 'bg-slate-100 text-slate-900 dark:bg-violet-500/10 dark:text-dm-fg'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-white/[0.04] dark:hover:text-dm-fg'
                 )
               }
             >
@@ -149,8 +149,8 @@ export default function Layout({ children }) {
                     className={cn(
                       'relative z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors',
                       isActive
-                        ? 'bg-white text-[#059669] shadow-sm dark:bg-[#0f172a]/90 dark:text-dm-green'
-                        : 'bg-slate-100 text-slate-500 dark:bg-[#0f172a]/80 dark:text-dm-dim'
+                        ? 'bg-white text-[#059669] shadow-sm dark:bg-violet-500/15 dark:text-dm-accent'
+                        : 'bg-slate-100 text-slate-500 dark:bg-dm-bg/50 dark:text-dm-dim'
                     )}
                   >
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
@@ -164,13 +164,13 @@ export default function Layout({ children }) {
       </nav>
 
       <div className="border-t border-slate-200 p-3 dark:border-dm-border">
-        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-dm-border dark:bg-dm-hover dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-dm-border dark:bg-dm-surface dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
           <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold', userTone)}>
             {userInitials}
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-dm-fg">{userName}</p>
-            <span className="mt-0.5 inline-flex rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-[#064e3b] dark:text-dm-green">
+            <span className="mt-0.5 inline-flex rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-violet-500/15 dark:text-violet-200">
               {formatRole(userRole)}
             </span>
           </div>
@@ -202,7 +202,7 @@ export default function Layout({ children }) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-dm-border dark:bg-dm-surface',
+          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-dm-border dark:bg-dm-sidebar',
           mobileNav ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           'lg:sticky lg:z-30'
         )}
@@ -221,7 +221,7 @@ export default function Layout({ children }) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-0">
-        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-dm-subtle dark:bg-dm-bg/95 lg:px-6">
+        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-dm-border dark:bg-dm-bg/80 dark:backdrop-blur-xl lg:px-6">
           <button
             type="button"
             className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-dm-border dark:text-dm-fg dark:hover:bg-dm-hover lg:hidden"
@@ -240,7 +240,7 @@ export default function Layout({ children }) {
               <Select
                 className={cn(
                   'h-10 min-h-0 w-[8.5rem] appearance-none border-[#e2e8f0] bg-white pl-9 pr-2 text-xs font-bold uppercase tracking-wide text-[#059669]',
-                  'dark:border-[#334155] dark:bg-[#1e293b] dark:text-dm-accent',
+                  'dark:border-dm-border dark:bg-dm-surface dark:text-dm-accent',
                   'sm:h-11 sm:w-44 sm:text-sm'
                 )}
                 value={currentFY}
@@ -260,7 +260,7 @@ export default function Layout({ children }) {
               className={cn(
                 'focus-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[6px] border-[0.5px] border-[#e2e8f0] bg-white px-3 text-left text-sm text-[#64748b] transition',
                 'hover:border-[#059669]/40 focus-visible:border-[#059669]',
-                'dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:border-dm-accent/50',
+                'dark:border-dm-border dark:bg-dm-surface dark:text-dm-muted dark:hover:border-dm-accent/40',
                 'sm:h-11 sm:gap-3 sm:px-4'
               )}
               onClick={() => setSearchOpen(true)}
@@ -290,13 +290,13 @@ export default function Layout({ children }) {
                 type="button"
                 className={cn(
                   'focus-ring flex items-center gap-1 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm transition',
-                  'hover:border-emerald-300 dark:border-dm-border dark:bg-dm-hover/90 dark:hover:border-dm-accent/35'
+                  'hover:border-emerald-300 dark:border-dm-border dark:bg-dm-surface dark:hover:border-dm-accent/40'
                 )}
                 onClick={() => setUserMenuOpen((o) => !o)}
                 aria-expanded={userMenuOpen}
                 aria-haspopup="menu"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#059669] text-xs font-bold text-white dark:bg-dm-accent">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#059669] text-xs font-bold text-white dark:bg-gradient-to-br dark:from-violet-500 dark:to-violet-700 dark:shadow-[0_0_16px_rgba(139,92,246,0.45)]">
                   {userInitials}
                 </span>
                 <ChevronDown className={cn('h-4 w-4 text-slate-400 transition dark:text-dm-muted', userMenuOpen && 'rotate-180')} aria-hidden />

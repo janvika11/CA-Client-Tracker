@@ -167,7 +167,7 @@ cd server && npm run seed
 - **8** services  
 - **15** clients  
 - **413** billing entries  
-- **~290** payment records (exact count varies slightly—each seeded payment ties to a billed line that has an amount paid; random status mix shifts the total by a small amount each run)
+- **290** payment records (target; exact count can differ slightly each run because invoice statuses in `seed.js` use `Math.random()`)
 
 ---
 

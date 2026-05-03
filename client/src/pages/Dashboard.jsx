@@ -3,12 +3,11 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
-  ArrowUpRight,
-  Gem,
   IndianRupee,
   LayoutGrid,
+  TrendingUp,
+  Users,
   Wallet,
-  Zap,
 } from 'lucide-react';
 import {
   Bar,
@@ -77,7 +76,10 @@ export default function Dashboard() {
   const billings = useQuery({ queryKey: ['billing', 'dashboard'], queryFn: () => getBillingEntries({ limit: 1000 }) });
   const services = useQuery({ queryKey: ['services', 'dashboard'], queryFn: () => getServices({ limit: 500 }) });
 
-  const loading = clients.isLoading || payments.isLoading || billings.isLoading || services.isLoading;
+  const dashboardQueries = [clients, payments, billings, services];
+  const loading = dashboardQueries.some((q) => q.isPending);
+  const failedQuery = dashboardQueries.find((q) => q.isError);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -92,10 +94,39 @@ export default function Dashboard() {
     );
   }
 
-  const clientRows = clients.data?.items || clients.data || [];
-  const paymentRows = payments.data?.payments || payments.data?.items || payments.data || [];
-  const billingRows = billings.data?.billings || billings.data?.items || billings.data || [];
-  const serviceRows = services.data?.services || services.data?.items || services.data || [];
+  if (failedQuery) {
+    const msg =
+      failedQuery.error?.response?.data?.message ||
+      failedQuery.error?.message ||
+      'Request failed. Check that you are signed in and the API is reachable.';
+    return (
+      <div className="rounded-lg border border-rose-200 bg-rose-50/90 p-6 text-rose-900 dark:border-dm-danger/40 dark:bg-[#450a0a]/35 dark:text-dm-danger">
+        <p className="font-semibold">Could not load dashboard</p>
+        <p className="mt-1 text-sm opacity-90">{msg}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 dark:bg-dm-danger dark:hover:opacity-90"
+          onClick={() => dashboardQueries.forEach((q) => void q.refetch())}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const asArray = (payload, keys) => {
+    if (Array.isArray(payload)) return payload;
+    for (const k of keys) {
+      if (Array.isArray(payload?.[k])) return payload[k];
+    }
+    if (Array.isArray(payload?.items)) return payload.items;
+    return [];
+  };
+
+  const clientRows = asArray(clients.data, ['clients']);
+  const paymentRows = asArray(payments.data, ['payments']);
+  const billingRows = asArray(billings.data, ['billings']);
+  const serviceRows = asArray(services.data, ['services']);
 
   const now = dayjs();
   const welcomeDate = now.format('dddd, D MMMM YYYY').toUpperCase();
@@ -121,6 +152,12 @@ export default function Dashboard() {
     else if (age <= 90) agingBuckets['61-90'] += balance;
     else agingBuckets['90+'] += balance;
   });
+
+  const agingChartData = AGING_BUCKET_ORDER.map((name) => ({
+    name,
+    value: Number(agingBuckets[name] || 0),
+  }));
+  const agingTotal = agingChartData.reduce((sum, d) => sum + d.value, 0);
 
   const monthKeys = Array.from({ length: 6 }).map((_, index) => now.subtract(5 - index, 'month').format('MMM YY'));
   const monthlyMap = Object.fromEntries(monthKeys.map((key) => [key, { month: key, Billed: 0, Collected: 0 }]));
@@ -267,7 +304,7 @@ export default function Dashboard() {
             </div>
             <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
-          <ResponsiveContainer width="100%" height="88%">
+          <ResponsiveContainer width="100%" height="88%" minHeight={240}>
             <BarChart data={monthlyChart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
               <YAxis
@@ -289,36 +326,47 @@ export default function Dashboard() {
             <p className="text-xs text-zinc-500 dark:text-[#475569]">0–30d · 31–60d · 61–90d · 90+d buckets</p>
           </div>
           <div className="relative h-[280px] w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={agingChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={58}
-                  outerRadius={92}
-                  paddingAngle={2}
-                >
-                  {AGING_BUCKET_ORDER.map((key, idx) => (
-                    <Cell
-                      key={key}
-                      fill={(isDark ? agingSliceColorsDark : agingSliceColorsLight)[idx]}
-                      stroke="transparent"
-                    />
-                  ))}
-                </Pie>
-                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-                <Legend verticalAlign="bottom" height={32} wrapperStyle={legendProps} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
-              <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-dm-fg">
-                {formatINRShort(agingTotal)}
-              </span>
-              <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-[#475569]">
-                total outstanding
-              </span>
-            </div>
+            {agingTotal > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={agingChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={58}
+                      outerRadius={92}
+                      paddingAngle={2}
+                    >
+                      {AGING_BUCKET_ORDER.map((key, idx) => (
+                        <Cell
+                          key={key}
+                          fill={(isDark ? agingSliceColorsDark : agingSliceColorsLight)[idx]}
+                          stroke="transparent"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                    <Legend verticalAlign="bottom" height={32} wrapperStyle={legendProps} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+                  <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-dm-fg">
+                    {formatINRShort(agingTotal)}
+                  </span>
+                  <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-[#475569]">
+                    total outstanding
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 text-center dark:border-dm-border dark:bg-dm-hover/25">
+                <p className="text-sm font-medium text-zinc-600 dark:text-dm-muted">No receivables in aging buckets</p>
+                <p className="mt-1 max-w-xs text-xs text-zinc-500 dark:text-dm-dim">
+                  Chart appears when there is outstanding balance with due dates.
+                </p>
+              </div>
+            )}
           </div>
         </Card>
       </div>
@@ -329,19 +377,25 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Top clients by outstanding</h2>
             <p className="text-xs text-zinc-500 dark:text-dm-muted">Highest receivable balance</p>
           </div>
-          <ResponsiveContainer width="100%" height="88%">
-            <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
-              <XAxis
-                type="number"
-                tick={{ fontSize: 11, fill: tickFill }}
-                stroke={axisStroke}
-                tickFormatter={(v) => formatINR(v)}
-              />
-              <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
-              <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Bar name="Outstanding" dataKey="outstanding" fill="#f87171" radius={[0, 4, 4, 0]} barSize={14} />
-            </BarChart>
-          </ResponsiveContainer>
+          {topClients.length > 0 ? (
+            <ResponsiveContainer width="100%" height="88%" minHeight={260}>
+              <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 11, fill: tickFill }}
+                  stroke={axisStroke}
+                  tickFormatter={(v) => formatINR(v)}
+                />
+                <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
+                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                <Bar name="Outstanding" dataKey="outstanding" fill="#f87171" radius={[0, 4, 4, 0]} barSize={14} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
+              No client-level outstanding yet.
+            </div>
+          )}
         </Card>
 
         <Card className="h-[380px] shadow-card dark:shadow-card-dark">
@@ -352,17 +406,23 @@ export default function Dashboard() {
             </div>
             <IndianRupee className="h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
-          <ResponsiveContainer width="100%" height="88%">
-            <PieChart>
-              <Pie data={revenueByService} dataKey="value" nameKey="name" innerRadius={64} outerRadius={96} paddingAngle={2}>
-                {revenueByService.map((entry, idx) => (
-                  <Cell key={entry.name} fill={colors[idx % colors.length]} stroke="transparent" />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend verticalAlign="bottom" height={36} wrapperStyle={isDark ? { ...legendProps, fontSize: 11 } : { fontSize: 11 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          {revenueByService.length > 0 ? (
+            <ResponsiveContainer width="100%" height="88%" minHeight={260}>
+              <PieChart>
+                <Pie data={revenueByService} dataKey="value" nameKey="name" innerRadius={64} outerRadius={96} paddingAngle={2}>
+                  {revenueByService.map((entry, idx) => (
+                    <Cell key={entry.name} fill={colors[idx % colors.length]} stroke="transparent" />
+                  ))}
+                </Pie>
+                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={isDark ? { ...legendProps, fontSize: 11 } : { fontSize: 11 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
+              No collected revenue by service line yet.
+            </div>
+          )}
         </Card>
       </div>
 

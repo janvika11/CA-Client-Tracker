@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Lock, Mail } from 'lucide-react';
-import { login } from '../lib/api';
+import { getMe, login } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 
 const ACCENT = '#059669';
@@ -30,9 +30,16 @@ export default function Login() {
 
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
-      setUser(data?.user || data);
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    onSuccess: async (data) => {
+      const u = data?.user ?? data?.data?.user ?? data;
+      // Drop stale 401 from a prior session, then warm /auth/me so ProtectedLayout does not mount on an error cache.
+      queryClient.removeQueries({ queryKey: ['auth', 'me'] });
+      try {
+        await queryClient.fetchQuery({ queryKey: ['auth', 'me'], queryFn: getMe });
+      } catch {
+        queryClient.setQueryData(['auth', 'me'], { user: u });
+      }
+      setUser(u);
     },
   });
 

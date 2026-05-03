@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { buildAuthCookieOptions, clearAuthCookieHeader } from '../utils/authCookies.js';
 
 const generateToken = (user) => {
   const id = user._id?.toString?.() ?? String(user._id);
@@ -67,12 +68,8 @@ export const login = async (req, res, next) => {
 
     const token = generateToken(user);
 
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: Boolean(isProductionLike),
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    const cookieOpts = buildAuthCookieOptions(req);
+    res.cookie('authToken', token, cookieOpts);
 
     res.json({
       success: true,
@@ -93,7 +90,7 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie('authToken');
+  clearAuthCookieHeader(res, req, 'authToken');
   res.json({
     success: true,
     message: 'Logout successful'

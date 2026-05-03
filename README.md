@@ -12,6 +12,84 @@ A complete MERN (MongoDB, Express, React, Node.js) stack application for Charter
 - **User Management**: Multi-user support with roles (owner/staff)
 - **Data Validation**: GSTIN and PAN regex validation
 
+## 💻 Run locally (for testers / UAT)
+
+Share this section with anyone who should try the app on their own machine. They use **their** MongoDB (e.g. a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster); demo data is optional via the seed script.
+
+### Requirements
+
+- **Node.js** v18 or newer ([nodejs.org](https://nodejs.org))
+- **npm** (comes with Node)
+- **MongoDB** — local install or Atlas connection string
+
+### Steps
+
+1. **Clone the repo** (use the Git URL your team shares, e.g. from GitHub), then enter the project folder:
+   ```bash
+   git clone <REPOSITORY_URL>
+   cd CA-Client-Tracker
+   ```
+   If the folder name differs after clone, `cd` into that folder instead.
+
+2. **Install dependencies** (from the project root — the folder that contains `client/`, `server/`, and this `README.md`):
+   ```bash
+   npm run install:all
+   ```
+
+3. **Backend environment** — copy the example env file and edit it:
+   ```bash
+   cd server
+   copy .env.example .env
+   ```
+   On macOS/Linux use `cp .env.example .env` instead of `copy`.
+
+   In `server/.env`, set at least:
+   - **`MONGODB_URI`** — your MongoDB connection string (Atlas: *Connect → Drivers*).
+   - **`JWT_SECRET`** — any long random string (32+ characters).
+
+   For local testing you can leave **`NODE_ENV=development`** and keep **`DEV_ALLOW_ANY_LOGIN=true`** (see `.env.example`) so sign-in is easier while you iterate.
+
+4. **Frontend environment** — open the `client` folder (from `server/`, run `cd ../client`). Create **`client/.env`** so the UI talks to your **local** API (not the hosted production API). The file must contain exactly:
+   ```env
+   VITE_API_URL=http://localhost:5000
+   ```
+   Easiest: open `client/.env` in any text editor, paste that line, save.  
+   From a shell in the `client` folder you can use:
+   - **macOS / Linux:** `printf 'VITE_API_URL=http://localhost:5000\n' > .env`
+   - **Windows (PowerShell):** `Set-Content .env 'VITE_API_URL=http://localhost:5000'`
+
+5. **Seed demo data (recommended, once)** — from the **project root** (the folder that contains `client` and `server`):
+   ```bash
+   cd server
+   npm run seed
+   cd ..
+   ```
+   If you are still inside `client/`, use `cd ../server` instead of `cd server`.
+   This creates sample clients, billing, payments, and a demo user. Seeding **clears** existing data in that database — use a dedicated database for testing.
+
+6. **Start the app** — from the **project root**:
+   ```bash
+   npm run dev
+   ```
+   Wait until the terminal shows both the API and Vite ready.
+
+7. **Open the app** in a browser: **http://localhost:5173**
+
+8. **Sign in** (after a successful seed):
+   - **Email:** `demo@ca.com`
+   - **Password:** `CaTracker_Demo_2026!`
+
+### Quick checks if something fails
+
+| Issue | What to try |
+|--------|-------------|
+| `Cannot connect to MongoDB` | Confirm `MONGODB_URI` in `server/.env`; in Atlas, allow your IP (or `0.0.0.0/0` for testing only) under *Network Access*. |
+| Login always fails | Run `npm run seed` in `server/` again; confirm the demo user exists. If `DEV_ALLOW_ANY_LOGIN=false`, use the seeded password above. |
+| UI calls the wrong API / CORS errors | Ensure `client/.env` exists with `VITE_API_URL=http://localhost:5000`, then restart `npm run dev`. |
+| Port 5000 already in use | Set `PORT=5001` (or another port) in `server/.env` and set `VITE_API_URL=http://localhost:5001` in `client/.env`, then restart. |
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -115,8 +193,9 @@ Optimized queries with indexes on:
 
 1. **Clone or navigate to the project**
    ```bash
-   cd ca-tracker
+   cd CA-Client-Tracker
    ```
+   (Use your actual clone folder name if different.)
 
 2. **Install all dependencies**
    ```bash
@@ -157,7 +236,10 @@ Create `server/.env` from `server/.env.example` and configure:
 - `NODE_ENV` - `development` or `production`
 - `DEV_ALLOW_ANY_LOGIN` - In development, leave unset or `true` to accept any login (uses seeded user matching email if found, otherwise the first user). Set `false` to require real passwords.
 
-The frontend axios base URL is set to `http://localhost:5000/api` in `client/src/lib/api.js`.
+The frontend uses **`VITE_API_URL`** (see `client/src/lib/api.js`). There is **no** baked-in Render URL in the repo: you must set the real API origin yourself.
+
+- **Local:** `VITE_API_URL=http://localhost:5000` in **`client/.env`** (see *Run locally* above).
+- **Vercel (production):** Project → **Settings → Environment Variables** → add **`VITE_API_URL`** = your Render web service HTTPS URL (example shape: `https://your-service-name.onrender.com`, no trailing slash, no `/api` suffix). Redeploy after saving.
 
 ## 🖥️ Frontend (Phase 5)
 

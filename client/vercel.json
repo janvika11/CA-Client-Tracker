@@ -1,7 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
-  "env": {
-    "VITE_API_URL": "https://ca-client-tracker.onrender.com"
-  }
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

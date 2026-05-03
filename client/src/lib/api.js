@@ -1,10 +1,14 @@
 import axios from 'axios';
 
-// Local dev: set VITE_API_URL=http://localhost:5000 in client/.env
-// Production: Vercel sets VITE_API_URL via client/vercel.json (or Project → Environment Variables).
-// Must match the Render “HTTPS” URL for the web service running this API (wrong host → 0 B / CORS).
-const BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://ca-client-tracker.onrender.com';
+// API origin: never hardcode Render here — set VITE_API_URL to your real Render HTTPS URL (no path, no trailing slash).
+// Local: optional client/.env with VITE_API_URL=http://localhost:5000 (default below is localhost).
+const rawApi = import.meta.env.VITE_API_URL?.trim();
+const BASE_URL = rawApi || 'http://localhost:5000';
+if (import.meta.env.PROD && !rawApi) {
+  console.error(
+    '[CA Tracker] Missing VITE_API_URL. In Vercel → Settings → Environment Variables, set VITE_API_URL to your Render service URL (e.g. https://your-service.onrender.com), then redeploy.'
+  );
+}
 const api = axios.create({
   baseURL: `${String(BASE_URL).replace(/\/$/, '')}/api`,
   withCredentials: true,

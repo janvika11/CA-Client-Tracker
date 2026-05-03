@@ -1,3 +1,4 @@
+import { Component } from 'react';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useQuery } from '@tanstack/react-query';
@@ -65,54 +66,48 @@ const AGING_BUCKET_ORDER = ['0-30', '31-60', '61-90', '90+'];
 const agingSliceColorsDark = ['#34d399', '#fbbf24', '#f87171', '#991b1b'];
 const agingSliceColorsLight = ['#059669', '#d97706', '#dc2626', '#7f1d1d'];
 
-export default function Dashboard() {
-  const isDark = useUIStore((s) => s.isDark);
+/** Catches Recharts / data edge-case crashes so the rest of the app keeps working. */
+class DashboardErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('[Dashboard]', error, info?.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-50">
+          <p className="font-semibold">Dashboard could not render</p>
+          <p className="mt-2 text-sm opacity-90">
+            Charts failed on this data (often a sizing or library edge case). Reload the page, or open DevTools → Console and send the error text.
+          </p>
+          <button
+            type="button"
+            className="mt-4 rounded-lg bg-amber-800 px-4 py-2 text-sm font-medium text-white hover:bg-amber-900 dark:bg-amber-600 dark:hover:bg-amber-500"
+            onClick={() => window.location.reload()}
+          >
+            Reload page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function DashboardBody({ clientsData, paymentsData, billingsData, servicesData, isDark }) {
   const tooltipProps = isDark ? chartTooltipDark : chartTooltipLight;
   const legendProps = isDark ? legendStyleDark : legendStyleLight;
   const axisStroke = isDark ? '#475569' : '#a1a1aa';
   const tickFill = isDark ? '#94a3b8' : '#52525b';
-  const clients = useQuery({ queryKey: ['clients', 'stats'], queryFn: () => getClients({ limit: 500 }) });
-  const payments = useQuery({ queryKey: ['payments', 'dashboard'], queryFn: () => getPayments({ limit: 200 }) });
-  const billings = useQuery({ queryKey: ['billing', 'dashboard'], queryFn: () => getBillingEntries({ limit: 1000 }) });
-  const services = useQuery({ queryKey: ['services', 'dashboard'], queryFn: () => getServices({ limit: 500 }) });
-
-  const dashboardQueries = [clients, payments, billings, services];
-  const loading = dashboardQueries.some((q) => q.isPending);
-  const failedQuery = dashboardQueries.find((q) => q.isError);
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <SkeletonBlock className="h-16 w-full max-w-xl" />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <SkeletonBlock key={i} className="h-28 w-full" />
-          ))}
-        </div>
-        <SkeletonBlock className="h-[360px] w-full" />
-      </div>
-    );
-  }
-
-  if (failedQuery) {
-    const msg =
-      failedQuery.error?.response?.data?.message ||
-      failedQuery.error?.message ||
-      'Request failed. Check that you are signed in and the API is reachable.';
-    return (
-      <div className="rounded-lg border border-rose-200 bg-rose-50/90 p-6 text-rose-900 dark:border-dm-danger/40 dark:bg-[#450a0a]/35 dark:text-dm-danger">
-        <p className="font-semibold">Could not load dashboard</p>
-        <p className="mt-1 text-sm opacity-90">{msg}</p>
-        <button
-          type="button"
-          className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 dark:bg-dm-danger dark:hover:opacity-90"
-          onClick={() => dashboardQueries.forEach((q) => void q.refetch())}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
   const asArray = (payload, keys) => {
     if (Array.isArray(payload)) return payload;
@@ -123,26 +118,27 @@ export default function Dashboard() {
     return [];
   };
 
-  const clientRows = asArray(clients.data, ['clients']);
-  const paymentRows = asArray(payments.data, ['payments']);
-  const billingRows = asArray(billings.data, ['billings']);
-  const serviceRows = asArray(services.data, ['services']);
+  const clientRows = asArray(clientsData, ['clients']).filter(Boolean);
+  const paymentRows = asArray(paymentsData, ['payments']).filter(Boolean);
+  const billingRows = asArray(billingsData, ['billings']).filter(Boolean);
+  const serviceRows = asArray(servicesData, ['services']).filter(Boolean);
 
   const now = dayjs();
   const welcomeDate = now.format('dddd, D MMMM YYYY').toUpperCase();
-  const activeCount = clientRows.filter((client) => client.status === 'active').length;
+  const activeCount = clientRows.filter((client) => client?.status === 'active').length;
   const totalClientCount = clientRows.length;
-  const totalOutstanding = billingRows.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+  const totalOutstanding = billingRows.reduce((sum, row) => sum + Number(row?.balance || 0), 0);
   const collectedThisMonth = paymentRows
-    .filter((row) => dayjs(row.receivedOn).month() === now.month() && dayjs(row.receivedOn).year() === now.year())
-    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    .filter((row) => dayjs(row?.receivedOn).isValid() && dayjs(row.receivedOn).month() === now.month() && dayjs(row.receivedOn).year() === now.year())
+    .reduce((sum, row) => sum + Number(row?.amount || 0), 0);
 
   const overdueAges = { over30: 0, over60: 0, over90: 0 };
   const agingBuckets = { '0-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
   billingRows.forEach((row) => {
-    const balance = Number(row.balance || 0);
+    const balance = Number(row?.balance || 0);
     if (!balance) return;
-    const due = dayjs(row.dueDate);
+    const due = dayjs(row?.dueDate);
+    if (!due.isValid()) return;
     const age = Math.max(0, now.diff(due, 'day'));
     if (age > 30) overdueAges.over30 += balance;
     if (age > 60) overdueAges.over60 += balance;
@@ -162,52 +158,58 @@ export default function Dashboard() {
   const monthKeys = Array.from({ length: 6 }).map((_, index) => now.subtract(5 - index, 'month').format('MMM YY'));
   const monthlyMap = Object.fromEntries(monthKeys.map((key) => [key, { month: key, Billed: 0, Collected: 0 }]));
   billingRows.forEach((row) => {
-    const key = dayjs(row.dueDate || row.createdAt).format('MMM YY');
-    if (monthlyMap[key]) monthlyMap[key].Billed += Number(row.amount || 0);
+    const d = dayjs(row?.dueDate || row?.createdAt);
+    if (!d.isValid()) return;
+    const key = d.format('MMM YY');
+    if (monthlyMap[key]) monthlyMap[key].Billed += Number(row?.amount || 0);
   });
   paymentRows.forEach((row) => {
-    const key = dayjs(row.receivedOn).format('MMM YY');
-    if (monthlyMap[key]) monthlyMap[key].Collected += Number(row.amount || 0);
+    const d = dayjs(row?.receivedOn);
+    if (!d.isValid()) return;
+    const key = d.format('MMM YY');
+    if (monthlyMap[key]) monthlyMap[key].Collected += Number(row?.amount || 0);
   });
   const monthlyChart = Object.values(monthlyMap);
 
   const topClientsMap = {};
   billingRows.forEach((row) => {
-    const key = row.clientId?._id || row.clientId || 'unknown';
-    const name = row.clientId?.name || 'Unknown Client';
+    const key = row?.clientId?._id || row?.clientId || 'unknown';
+    const name = row?.clientId?.name || 'Unknown Client';
     if (!topClientsMap[key]) topClientsMap[key] = { name, outstanding: 0 };
-    topClientsMap[key].outstanding += Number(row.balance || 0);
+    topClientsMap[key].outstanding += Number(row?.balance || 0);
   });
   const topClients = Object.values(topClientsMap).sort((a, b) => b.outstanding - a.outstanding).slice(0, 10);
 
   const revenueByService = serviceRows
     .map((service) => {
-      const id = service._id || service.id;
+      const id = service?._id ?? service?.id;
+      const sid = id != null ? String(id) : '';
       const revenue = billingRows
-        .filter((row) => (row.serviceId?._id || row.serviceId) === id)
-        .reduce((sum, row) => sum + Number(row.amountPaid || 0), 0);
-      return { name: service.name, value: revenue };
+        .filter((row) => String(row?.serviceId?._id ?? row?.serviceId ?? '') === sid)
+        .reduce((sum, row) => sum + Number(row?.amountPaid || 0), 0);
+      const name = service?.name || 'Service';
+      return { name, value: revenue };
     })
     .filter((row) => row.value > 0);
 
   const activityFeed = [
     ...paymentRows.slice(0, 20).map((row) => ({
       type: 'payment',
-      date: row.receivedOn,
-      clientName: row.clientId?.name || 'Client',
-      text: `Payment ${formatINR(row.amount)} received from ${row.clientId?.name || 'client'}`,
+      date: row?.receivedOn,
+      clientName: row?.clientId?.name || 'Client',
+      text: `Payment ${formatINR(row?.amount)} received from ${row?.clientId?.name || 'client'}`,
     })),
     ...billingRows
-      .filter((row) => row.status === 'overdue')
+      .filter((row) => row?.status === 'overdue')
       .slice(0, 20)
       .map((row) => ({
         type: 'overdue',
-        date: row.dueDate,
-        clientName: row.clientId?.name || 'Client',
-        text: `Overdue: ${row.clientId?.name || 'Client'} — ${formatINR(row.balance || row.amount)}`,
+        date: row?.dueDate,
+        clientName: row?.clientId?.name || 'Client',
+        text: `Overdue: ${row?.clientId?.name || 'Client'} — ${formatINR(row?.balance || row?.amount)}`,
       })),
   ]
-    .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())
+    .sort((a, b) => (dayjs(b.date).valueOf() || 0) - (dayjs(a.date).valueOf() || 0))
     .slice(0, 16);
 
   const colors = ['#059669', '#fbbf24', '#f87171', '#64748b', '#60a5fa', '#34d399'];
@@ -296,7 +298,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="h-[340px] shadow-card dark:shadow-card-dark">
+        <Card className="min-h-[320px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Monthly billed vs collected</h2>
@@ -304,28 +306,30 @@ export default function Dashboard() {
             </div>
             <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
-          <ResponsiveContainer width="100%" height="88%" minHeight={240}>
-            <BarChart data={monthlyChart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
-              <YAxis
-                tick={{ fontSize: 11, fill: tickFill }}
-                stroke={axisStroke}
-                tickFormatter={(v) => (v >= 100000 ? `${Math.round(v / 1000)}k` : `${v}`)}
-              />
-              <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-              <Legend wrapperStyle={legendProps} />
-              <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#94a3b8'} radius={[4, 4, 0, 0]} />
-              <Bar name="Collected" dataKey="Collected" fill={collectedBar} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[268px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: tickFill }}
+                  stroke={axisStroke}
+                  tickFormatter={(v) => (v >= 100000 ? `${Math.round(v / 1000)}k` : `${v}`)}
+                />
+                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                <Legend wrapperStyle={legendProps} />
+                <Bar name="Billed" dataKey="Billed" fill={isDark ? billedBarDark : '#94a3b8'} radius={[4, 4, 0, 0]} />
+                <Bar name="Collected" dataKey="Collected" fill={collectedBar} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
 
-        <Card className="h-[340px] shadow-card dark:shadow-card-dark">
+        <Card className="min-h-[320px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Outstanding aging</h2>
             <p className="text-xs text-zinc-500 dark:text-[#475569]">0–30d · 31–60d · 61–90d · 90+d buckets</p>
           </div>
-          <div className="relative h-[280px] w-full pt-1">
+          <div className="relative h-[280px] w-full min-w-0 pt-1">
             {agingTotal > 0 ? (
               <>
                 <ResponsiveContainer width="100%" height="100%">
@@ -372,25 +376,27 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="h-[380px] shadow-card dark:shadow-card-dark">
+        <Card className="min-h-[360px] shadow-card dark:shadow-card-dark">
           <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Top clients by outstanding</h2>
             <p className="text-xs text-zinc-500 dark:text-dm-muted">Highest receivable balance</p>
           </div>
           {topClients.length > 0 ? (
-            <ResponsiveContainer width="100%" height="88%" minHeight={260}>
-              <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 11, fill: tickFill }}
-                  stroke={axisStroke}
-                  tickFormatter={(v) => formatINR(v)}
-                />
-                <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
-                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-                <Bar name="Outstanding" dataKey="outstanding" fill="#f87171" radius={[0, 4, 4, 0]} barSize={14} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart layout="vertical" data={topClients} margin={{ left: 4, right: 12, top: 8 }}>
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 11, fill: tickFill }}
+                    stroke={axisStroke}
+                    tickFormatter={(v) => formatINR(v)}
+                  />
+                  <YAxis type="category" dataKey="name" width={118} tick={{ fontSize: 11, fill: tickFill }} stroke={axisStroke} />
+                  <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                  <Bar name="Outstanding" dataKey="outstanding" fill="#f87171" radius={[0, 4, 4, 0]} barSize={14} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
               No client-level outstanding yet.
@@ -398,7 +404,7 @@ export default function Dashboard() {
           )}
         </Card>
 
-        <Card className="h-[380px] shadow-card dark:shadow-card-dark">
+        <Card className="min-h-[360px] shadow-card dark:shadow-card-dark">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Service revenue (collected)</h2>
@@ -407,17 +413,19 @@ export default function Dashboard() {
             <IndianRupee className="h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
           </div>
           {revenueByService.length > 0 ? (
-            <ResponsiveContainer width="100%" height="88%" minHeight={260}>
-              <PieChart>
-                <Pie data={revenueByService} dataKey="value" nameKey="name" innerRadius={64} outerRadius={96} paddingAngle={2}>
-                  {revenueByService.map((entry, idx) => (
-                    <Cell key={entry.name} fill={colors[idx % colors.length]} stroke="transparent" />
-                  ))}
-                </Pie>
-                <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
-                <Legend verticalAlign="bottom" height={36} wrapperStyle={isDark ? { ...legendProps, fontSize: 11 } : { fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={revenueByService} dataKey="value" nameKey="name" innerRadius={64} outerRadius={96} paddingAngle={2}>
+                    {revenueByService.map((entry, idx) => (
+                      <Cell key={`${entry.name}-${idx}`} fill={colors[idx % colors.length]} stroke="transparent" />
+                    ))}
+                  </Pie>
+                  <Tooltip {...tooltipProps} formatter={(value) => formatINR(value)} />
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={isDark ? { ...legendProps, fontSize: 11 } : { fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
               No collected revenue by service line yet.
@@ -471,5 +479,63 @@ export default function Dashboard() {
         )}
       </Card>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  const isDark = useUIStore((s) => s.isDark);
+  const clients = useQuery({ queryKey: ['clients', 'stats'], queryFn: () => getClients({ limit: 500 }) });
+  const payments = useQuery({ queryKey: ['payments', 'dashboard'], queryFn: () => getPayments({ limit: 200 }) });
+  const billings = useQuery({ queryKey: ['billing', 'dashboard'], queryFn: () => getBillingEntries({ limit: 1000 }) });
+  const services = useQuery({ queryKey: ['services', 'dashboard'], queryFn: () => getServices({ limit: 500 }) });
+
+  const dashboardQueries = [clients, payments, billings, services];
+  const loading = dashboardQueries.some((q) => q.isPending);
+  const failedQuery = dashboardQueries.find((q) => q.isError);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <SkeletonBlock className="h-16 w-full max-w-xl" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <SkeletonBlock key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <SkeletonBlock className="h-[360px] w-full" />
+      </div>
+    );
+  }
+
+  if (failedQuery) {
+    const msg =
+      failedQuery.error?.response?.data?.message ||
+      failedQuery.error?.message ||
+      'Request failed. Check that you are signed in and the API is reachable.';
+    return (
+      <div className="rounded-lg border border-rose-200 bg-rose-50/90 p-6 text-rose-900 dark:border-dm-danger/40 dark:bg-[#450a0a]/35 dark:text-dm-danger">
+        <p className="font-semibold">Could not load dashboard</p>
+        <p className="mt-1 text-sm opacity-90">{msg}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 dark:bg-dm-danger dark:hover:opacity-90"
+          onClick={() => dashboardQueries.forEach((q) => void q.refetch())}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <DashboardErrorBoundary>
+      <DashboardBody
+        clientsData={clients.data}
+        paymentsData={payments.data}
+        billingsData={billings.data}
+        servicesData={services.data}
+        isDark={isDark}
+      />
+    </DashboardErrorBoundary>
   );
 }

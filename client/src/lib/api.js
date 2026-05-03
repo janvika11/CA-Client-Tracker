@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Local dev: set VITE_API_URL=http://localhost:5000 in client/.env
+const BASE_URL =
+  import.meta.env.VITE_API_URL || 'https://ca-client-tracker-1.onrender.com';
 const api = axios.create({
   baseURL: `${String(BASE_URL).replace(/\/$/, '')}/api`,
   withCredentials: true,

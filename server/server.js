@@ -1,10 +1,12 @@
+import './loadEnv.js';
+
+import dns from 'node:dns';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -20,15 +22,24 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 // Import cron jobs
 import { startCronJobs } from './utils/cronJobs.js';
 
-dotenv.config();
-
 const app = express();
+
+// Needed so req.secure / HTTPS + cookie SameSite=None logic match real clients behind Render/Fly/Railway/nginx.
+const isHostedRuntime =
+  process.env.NODE_ENV === 'production' ||
+  process.env.RENDER === 'true' ||
+  Boolean(process.env.RAILWAY_ENVIRONMENT) ||
+  Boolean(process.env.FLY_APP_NAME);
+if (isHostedRuntime || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_COUNT) || 1);
+}
 
 const envCorsOrigin = (process.env.CORS_ORIGIN || '').trim();
 
 /** Any https host ending in .vercel.app (production + preview / branch deploys). */
 const vercelAppOrigin = /^https:\/\/[^\s/]+\.vercel\.app$/;
 
+/** Production frontend + local dev; env CORS_ORIGIN adds another allowed origin if set. */
 const corsStaticOrigins = [
   'https://ca-client-tracker.vercel.app',
   'http://localhost:5173',
@@ -75,17 +86,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ca-tracker';
+// MongoDB — connect before accepting HTTP traffic so queries never hit the 10s "buffering timed out" state.
+const MONGODB_URI = process.env.MONGODB_URI?.trim() || 'mongodb://127.0.0.1:27017/ca-tracker';
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log('✓ MongoDB connected');
-    // Start cron jobs after DB connection
-    startCronJobs();
-  })
-  .catch((err) => console.error('MongoDB connection error:', err));
+const mongooseOpts = {
+  serverSelectionTimeoutMS: 15_000,
+};
 
 // Health check (no rate limit)
 app.get('/api/health', (req, res) => {
@@ -125,15 +131,51 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`
+async function start() {
+  try {
+    if (typeof dns.setDefaultResultOrder === 'function') {
+      dns.setDefaultResultOrder('ipv4first');
+    }
+    await mongoose.connect(MONGODB_URI, mongooseOpts);
+    console.log('✓ MongoDB connected');
+    startCronJobs();
+  } catch (err) {
+    const msg = String(err?.message ?? err ?? '');
+    console.error('MongoDB connection failed:', msg);
+    if (/querySrv|_mongodb\._tcp/i.test(msg)) {
+      console.error(
+        '\nThis error is DNS for mongodb+srv:// (Atlas SRV record lookup), not your password.\n' +
+          'Often: VPN, strict firewall/antivirus DNS, ISP/corporate DNS, or flaky network.\n' +
+          'Try:\n' +
+          '  1. Atlas → Connect → Drivers → use the non-SRV "standard connection" string (explicit hostnames :27017)\n' +
+          '     and set that as MONGODB_URI.\n' +
+          '  2. Pause VPN; try mobile hotspot.\n' +
+          '  3. Windows: try another DNS (e.g. 1.1.1.1 or 8.8.8.8) on your active adapter.\n'
+      );
+    } else if (
+      !/querySrv/i.test(msg) &&
+      /ECONNREFUSED.*(127\.0\.0\.1|localhost).*27017/i.test(msg.replace(/\s+/g, ' '))
+    ) {
+      console.error('\nStill targeting local MongoDB — confirm server/.env has MONGODB_URI saved.');
+    }
+    console.error(
+      'Atlas (after DNS works): allow your IP / 0.0.0.0/0 in Network Access; cluster not paused; user/password matches URI.'
+    );
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║   CA Practice Management & Billing Tracker v3              ║
 ║   ✓ Server running on http://localhost:${PORT}
 ║   ✓ MongoDB: ${MONGODB_URI.includes('localhost') ? 'Local' : 'Cloud'}                            ║
 ║   ✓ Rate Limit: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per 15min
-║   ✓ CORS: production Vercel + *.vercel.app + localhost + CORS_ORIGIN ║
+║   ✓ CORS: https://ca-client-tracker.vercel.app + *.vercel.app + localhost + CORS_ORIGIN ║
 ║   ✓ Cron Jobs: Enabled (Billing + Overdue)                 ║
 ╚═══════════════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
+
+start();

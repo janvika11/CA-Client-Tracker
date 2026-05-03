@@ -60,7 +60,9 @@ function ProtectedLayout() {
     if (query.isError) clearUser();
   }, [query.data, query.isError, setUser, clearUser]);
 
-  if (query.isLoading) {
+  // v5: `isLoading` is only true while pending *and* fetching — there can be a pending+idle gap
+  // where the layout mounted before /me finished, which breaks downstream pages. Gate on status.
+  if (query.status === 'pending') {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-dm-bg">
         <div className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white dark:border-dm-border dark:bg-dm-surface lg:block">

@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config();
+dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '.env') });
 
 import mongoose from 'mongoose';
 import { getFY } from './utils/fyUtils.js';
@@ -11,7 +13,7 @@ import ClientService from './models/ClientService.js';
 import BillingEntry from './models/BillingEntry.js';
 import Payment from './models/Payment.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ca-tracker';
+const MONGODB_URI = process.env.MONGODB_URI?.trim() || 'mongodb://127.0.0.1:27017/ca-tracker';
 /** Demo-only password (printed after seed). Prefer this over common passwords to reduce browser "breached password" warnings. */
 const DEMO_PASSWORD = 'CaTracker_Demo_2026!';
 
@@ -405,110 +407,122 @@ async function seedDatabase() {
       { client: 14, services: ['GST-MF', 'TDS-Q', 'ITR-F', 'ROC-C', 'BOOK'] } // Auto Components
     ];
 
-    const clientServices = [];
-    const billingEntries = [];
-    const payments = [];
+    /** Build rows in memory — Atlas latency makes thousands of sequential `create()` unbearably slow. */
+    const csDocs = [];
+    const linkMeta = [];
 
     for (const assignment of clientServiceAssignments) {
       const client = clients[assignment.client];
       for (const serviceCode of assignment.services) {
         const service = serviceMap[serviceCode];
-        const customPrice = Math.round(
-          service.defaultPrice * (0.9 + Math.random() * 0.2)
-        ); // 10% variance
-
-        const cs = await ClientService.create({
+        const customPrice = Math.round(service.defaultPrice * (0.9 + Math.random() * 0.2));
+        csDocs.push({
           clientId: client._id,
           serviceId: service._id,
           customPrice,
           billingCycle: service.billingCycle,
           startDate: new Date(2024, 0, 15),
           isActive: true,
-          firmId: demoUser._id
+          firmId: demoUser._id,
         });
-        clientServices.push(cs);
-
-        // Create 6 months of billing entries
-        const currentDate = new Date();
-        for (let i = 6; i >= 0; i--) {
-          const billingDate = new Date(currentDate);
-          billingDate.setMonth(billingDate.getMonth() - i);
-          const month = billingDate.getMonth() + 1;
-          const year = billingDate.getFullYear();
-          const financialYear = getFY(new Date(year, month - 1, 1));
-
-          // Determine period based on service billing cycle
-          let period = { month, year, label: `${financialYear} - Month ${month}` };
-          if (service.billingCycle === 'quarterly') {
-            const quarter = Math.ceil(month / 3);
-            period = { quarter, year, label: `${financialYear} - Q${quarter}` };
-          }
-
-          // Varied statuses
-          let status = 'pending';
-          let amountPaid = 0;
-          let paidOn = null;
-          let paymentMode = null;
-
-          const random = Math.random();
-          if (random < 0.5) {
-            status = 'paid';
-            amountPaid = customPrice;
-            paidOn = new Date(billingDate);
-            paidOn.setDate(paidOn.getDate() + 10);
-            paymentMode = ['cash', 'upi', 'bank_transfer', 'cheque'][
-              Math.floor(Math.random() * 4)
-            ];
-          } else if (random < 0.7) {
-            status = 'partially_paid';
-            amountPaid = Math.round(customPrice * 0.5);
-            paidOn = new Date(billingDate);
-            paidOn.setDate(paidOn.getDate() + 15);
-            paymentMode = ['upi', 'bank_transfer'][Math.floor(Math.random() * 2)];
-          } else if (random < 0.85) {
-            status = 'pending';
-          } else {
-            status = 'overdue';
-          }
-
-          const billing = await BillingEntry.create({
-            clientId: client._id,
-            clientServiceId: cs._id,
-            serviceId: service._id,
-            financialYear,
-            period,
-            amount: customPrice,
-            status,
-            amountPaid,
-            balance: customPrice - amountPaid,
-            dueDate: new Date(billingDate.setDate(billingDate.getDate() + 15)),
-            paidOn,
-            paymentMode,
-            paymentReference: paymentMode
-              ? `REF-${client._id.toString().slice(-4)}-${month}-${year}`
-              : null,
-            notes: 'Auto-generated seed data',
-            firmId: demoUser._id
-          });
-          billingEntries.push(billing);
-
-          // Create payment if paid
-          if (amountPaid > 0) {
-            const payment = await Payment.create({
-              clientId: client._id,
-              invoiceIds: [billing._id],
-              amount: amountPaid,
-              mode: paymentMode,
-              reference: `REF-${client._id.toString().slice(-4)}-${month}-${year}`,
-              receivedOn: paidOn,
-              notes: 'Seed data payment',
-              firmId: demoUser._id
-            });
-            payments.push(payment);
-          }
-        }
+        linkMeta.push({ client, service, customPrice });
       }
     }
+
+    console.log(`Inserting ${csDocs.length} client-service rows (bulk)…`);
+    const clientServices = await ClientService.insertMany(csDocs);
+
+    const billingDocs = [];
+    const currentDate = new Date();
+
+    for (let s = 0; s < clientServices.length; s++) {
+      const cs = clientServices[s];
+      const { client, service, customPrice } = linkMeta[s];
+
+      for (let i = 6; i >= 0; i--) {
+        const billingDate = new Date(currentDate);
+        billingDate.setMonth(billingDate.getMonth() - i);
+        const month = billingDate.getMonth() + 1;
+        const year = billingDate.getFullYear();
+        const financialYear = getFY(new Date(year, month - 1, 1));
+
+        let period = { month, year, label: `${financialYear} - Month ${month}` };
+        if (service.billingCycle === 'quarterly') {
+          const quarter = Math.ceil(month / 3);
+          period = { quarter, year, label: `${financialYear} - Q${quarter}` };
+        }
+
+        let status = 'pending';
+        let amountPaid = 0;
+        let paidOn = null;
+        let paymentMode = null;
+
+        const random = Math.random();
+        if (random < 0.5) {
+          status = 'paid';
+          amountPaid = customPrice;
+          paidOn = new Date(billingDate);
+          paidOn.setDate(paidOn.getDate() + 10);
+          paymentMode = ['cash', 'upi', 'bank_transfer', 'cheque'][Math.floor(Math.random() * 4)];
+        } else if (random < 0.7) {
+          status = 'partially_paid';
+          amountPaid = Math.round(customPrice * 0.5);
+          paidOn = new Date(billingDate);
+          paidOn.setDate(paidOn.getDate() + 15);
+          paymentMode = ['upi', 'bank_transfer'][Math.floor(Math.random() * 2)];
+        } else if (random < 0.85) {
+          status = 'pending';
+        } else {
+          status = 'overdue';
+        }
+
+        const dueDate = new Date(billingDate);
+        dueDate.setDate(dueDate.getDate() + 15);
+
+        billingDocs.push({
+          clientId: client._id,
+          clientServiceId: cs._id,
+          serviceId: service._id,
+          financialYear,
+          period,
+          amount: customPrice,
+          status,
+          amountPaid,
+          balance: customPrice - amountPaid,
+          dueDate,
+          paidOn,
+          paymentMode,
+          paymentReference: paymentMode
+            ? `REF-${client._id.toString().slice(-4)}-${month}-${year}`
+            : null,
+          notes: 'Auto-generated seed data',
+          firmId: demoUser._id,
+        });
+      }
+    }
+
+    console.log(`Inserting ${billingDocs.length} billing rows (bulk)…`);
+    const billingEntries = await BillingEntry.insertMany(billingDocs);
+
+    const paymentDocs = [];
+    for (const billing of billingEntries) {
+      if (billing.amountPaid > 0) {
+        paymentDocs.push({
+          clientId: billing.clientId,
+          invoiceIds: [billing._id],
+          amount: billing.amountPaid,
+          mode: billing.paymentMode,
+          reference:
+            billing.paymentReference || `REF-SEED-${billing._id.toString().slice(-8)}`,
+          receivedOn: billing.paidOn,
+          notes: 'Seed data payment',
+          firmId: demoUser._id,
+        });
+      }
+    }
+
+    console.log(`Inserting ${paymentDocs.length} payment rows (bulk)…`);
+    const payments = paymentDocs.length ? await Payment.insertMany(paymentDocs) : [];
 
     console.log(`✓ Created ${clientServices.length} client service relationships`);
     console.log(`✓ Created ${billingEntries.length} billing entries`);

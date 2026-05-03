@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 // Local dev: set VITE_API_URL=http://localhost:5000 in client/.env
+// Production fallback (Vercel): Render API host — override with VITE_API_URL if needed
 const BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://ca-client-tracker-1.onrender.com';
+  import.meta.env.VITE_API_URL || 'https://ca-client-tracker.onrender.com';
 const api = axios.create({
   baseURL: `${String(BASE_URL).replace(/\/$/, '')}/api`,
   withCredentials: true,

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import { SkeletonBlock } from './components/ui/skeleton';
 import { getMe } from './lib/api';
+import { clearAuthToken } from './lib/authToken';
 import { useAuthStore } from './store/authStore';
 import Billing from './pages/Billing';
 import BulkUpload from './pages/BulkUpload';
@@ -14,7 +15,7 @@ import Login from './pages/Login';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import Services from './pages/Services';
-import PlaceholderPage from './pages/PlaceholderPage';
+import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
 function App() {
@@ -31,10 +32,7 @@ function App() {
         <Route path="/billing" element={<Billing />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/reports" element={<Reports />} />
-        <Route
-          path="/settings"
-          element={<PlaceholderPage title="Settings" description="Workspace settings and preferences coming next." />}
-        />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -57,7 +55,10 @@ function ProtectedLayout() {
       const p = query.data;
       setUser(p.user ?? p.data?.user ?? p);
     }
-    if (query.isError) clearUser();
+    if (query.isError) {
+      clearAuthToken();
+      clearUser();
+    }
   }, [query.data, query.isError, setUser, clearUser]);
 
   // v5: `isLoading` is only true while pending *and* fetching — there can be a pending+idle gap

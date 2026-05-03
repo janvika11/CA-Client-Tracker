@@ -77,14 +77,17 @@ const monthColumnIndexFromJune = (colIndex) => colIndex >= 2;
 
 function MatrixCell({ cell, onCellClick }) {
   return (
-    <div className="group relative flex items-center justify-center py-0.5">
+    <div className="group relative flex min-w-[6rem] items-center justify-center py-0.5 sm:min-w-[5.75rem]">
       {!cell ? (
-        <div className="h-[52px] w-[5.75rem] shrink-0 rounded-xl bg-slate-100 dark:bg-dm-hover" aria-hidden />
+        <div
+          className="mx-auto h-[52px] min-h-[52px] w-full min-w-[5.75rem] max-w-[6.5rem] shrink-0 rounded-xl border border-slate-200/80 bg-slate-100 dark:border-dm-border dark:bg-dm-hover sm:max-w-none sm:w-[5.75rem]"
+          aria-hidden
+        />
       ) : (
         <>
           <button
             type="button"
-            className={`relative z-0 h-[52px] w-[5.75rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-dm-accent ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/65 opacity-90 dark:border-dm-subtle dark:!bg-transparent' : ''}`}
+            className={`relative z-0 h-[52px] min-h-[52px] w-full min-w-[5.75rem] max-w-[6.5rem] shrink-0 rounded-xl transition duration-200 hover:opacity-92 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-dm-accent sm:max-w-none sm:w-[5.75rem] ${matrixCellFill(cell.status)} ${cell._placeholder ? 'border-2 border-dashed border-slate-400/70 bg-slate-100/90 opacity-95 dark:border-dm-muted dark:bg-dm-hover/80 dark:opacity-100' : ''}`}
             onClick={() => {
               if (!cell._placeholder) onCellClick();
             }}
@@ -246,7 +249,7 @@ export default function Billing() {
         </div>
       ) : null}
 
-      <Card className="overflow-hidden p-0 shadow-card dark:shadow-card-dark">
+      <Card className="p-0 shadow-card dark:shadow-card-dark">
         {empty ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-dm-hover">
@@ -269,22 +272,28 @@ export default function Billing() {
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-sm">
+          <div className="touch-pan-x overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+            <p className="px-4 pt-3 text-xs text-zinc-500 dark:text-dm-muted sm:hidden">
+              Swipe horizontally to see all months and status colours.
+            </p>
+            <table className="w-max min-w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-muted">
-                  <th className="sticky left-0 z-20 min-w-[10rem] border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-left dark:border-dm-subtle dark:bg-dm-surface">
+                  <th className="sticky left-0 z-20 min-w-[11rem] max-w-[13rem] border-r border-zinc-200 bg-zinc-50 px-3 py-3 text-left shadow-[4px_0_12px_-6px_rgba(0,0,0,0.12)] dark:border-dm-subtle dark:bg-dm-surface dark:shadow-[4px_0_16px_-4px_rgba(0,0,0,0.45)] sm:min-w-[10rem] sm:px-4">
                     Client
                   </th>
                   {MONTH_COLUMNS.map((m) => (
-                    <th key={m.label} className="px-1 py-3 text-center font-semibold text-zinc-700 dark:text-dm-muted">
-                      <span className="inline-flex min-w-[3.5rem] flex-col items-center gap-0.5">
+                    <th
+                      key={m.label}
+                      className="min-w-[6rem] whitespace-nowrap px-2 py-3 text-center font-semibold text-zinc-700 dark:text-dm-muted sm:min-w-[5.75rem] sm:px-1"
+                    >
+                      <span className="inline-flex min-w-[4.5rem] flex-col items-center gap-0.5">
                         <CalendarRange className="mx-auto h-3.5 w-3.5 text-zinc-400 opacity-70 dark:text-dm-muted dark:opacity-90" aria-hidden />
                         {m.label}
                       </span>
                     </th>
                   ))}
-                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-zinc-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-muted">
+                  <th className="sticky right-0 z-20 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-3 py-3 text-right text-zinc-700 shadow-[-4px_0_12px_-6px_rgba(0,0,0,0.12)] dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-muted dark:shadow-[-4px_0_16px_-4px_rgba(0,0,0,0.45)] sm:px-4">
                     Outstanding
                   </th>
                 </tr>
@@ -298,7 +307,7 @@ export default function Billing() {
                       className="border-t border-zinc-200 transition-colors hover:bg-zinc-50/80 dark:border-dm-subtle dark:hover:bg-dm-hover"
                     >
                       <td
-                        className="sticky left-0 z-10 max-w-[13rem] border-r border-zinc-200 bg-white px-4 py-2 font-medium text-zinc-900 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-table"
+                        className="sticky left-0 z-10 min-w-[11rem] max-w-[13rem] border-r border-zinc-200 bg-white px-3 py-2 font-medium text-zinc-900 shadow-[4px_0_12px_-6px_rgba(0,0,0,0.08)] dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-table dark:shadow-[4px_0_16px_-4px_rgba(0,0,0,0.35)] sm:px-4"
                         title={clientRow.clientName || clientRow.name}
                       >
                         <span className="block truncate">{clientRow.clientName || clientRow.name}</span>
@@ -317,7 +326,10 @@ export default function Billing() {
                           };
                         }
                         return (
-                          <td key={m.label} className="px-1 py-1 text-center align-middle">
+                          <td
+                            key={m.label}
+                            className="min-w-[6rem] px-2 py-1.5 text-center align-middle sm:min-w-[5.75rem] sm:px-1"
+                          >
                             <MatrixCell
                               cell={cell}
                               onCellClick={() =>
@@ -332,7 +344,7 @@ export default function Billing() {
                         );
                       })}
                       <td
-                        className={`sticky right-0 z-10 border-l border-zinc-200 bg-white px-4 py-2 text-right text-sm font-semibold tabular-nums dark:border-dm-subtle dark:bg-dm-surface ${bal > 0 ? 'text-rose-600 dark:text-dm-danger' : 'text-emerald-600 dark:text-dm-green'}`}
+                        className={`sticky right-0 z-10 min-w-[7.5rem] border-l border-zinc-200 bg-white px-3 py-2 text-right text-sm font-semibold tabular-nums shadow-[-4px_0_12px_-6px_rgba(0,0,0,0.08)] dark:border-dm-subtle dark:bg-dm-surface dark:shadow-[-4px_0_16px_-4px_rgba(0,0,0,0.35)] sm:px-4 ${bal > 0 ? 'text-rose-600 dark:text-dm-danger' : 'text-emerald-600 dark:text-dm-green'}`}
                       >
                         {formatINR(bal)}
                       </td>
@@ -342,18 +354,18 @@ export default function Billing() {
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold dark:border-dm-subtle dark:bg-dm-surface">
-                  <td className="sticky left-0 z-10 border-r border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-900 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-fg">
+                  <td className="sticky left-0 z-10 min-w-[11rem] border-r border-zinc-200 bg-zinc-50 px-3 py-3 text-zinc-900 shadow-[4px_0_12px_-6px_rgba(0,0,0,0.1)] dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-fg dark:shadow-[4px_0_16px_-4px_rgba(0,0,0,0.4)] sm:px-4">
                     Totals
                   </td>
                   {monthTotals.map((total, idx) => (
                     <td
                       key={MONTH_COLUMNS[idx].label}
-                      className="px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-dm-table"
+                      className="min-w-[6rem] whitespace-nowrap px-2 py-3 text-center text-xs tabular-nums text-zinc-700 dark:text-dm-table sm:min-w-[5.75rem]"
                     >
                       {total > 0 ? formatINR(total) : '—'}
                     </td>
                   ))}
-                  <td className="sticky right-0 z-10 border-l border-zinc-200 bg-zinc-50 px-4 py-3 text-right text-sm tabular-nums text-rose-700 dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-danger">
+                  <td className="sticky right-0 z-10 min-w-[7.5rem] border-l border-zinc-200 bg-zinc-50 px-3 py-3 text-right text-sm tabular-nums text-rose-700 shadow-[-4px_0_12px_-6px_rgba(0,0,0,0.1)] dark:border-dm-subtle dark:bg-dm-surface dark:text-dm-danger dark:shadow-[-4px_0_16px_-4px_rgba(0,0,0,0.4)] sm:px-4">
                     {formatINR(grandOutstanding)}
                   </td>
                 </tr>

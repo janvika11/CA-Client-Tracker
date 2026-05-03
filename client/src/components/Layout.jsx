@@ -105,10 +105,10 @@ export default function Layout({ children }) {
 
   const sidebarContent = (
     <>
-      <div className="border-b border-slate-200 px-4 py-5 dark:border-dm-border">
+      <div className="border-b border-slate-200 px-4 py-5 dark:border-white/[0.06]">
         <Link
           to="/dashboard"
-          className="block rounded-lg transition hover:bg-slate-50 dark:hover:bg-white/[0.04]"
+          className="block rounded-xl transition hover:bg-slate-50 dark:hover:bg-white/[0.04]"
           onClick={() => setMobileNav(false)}
         >
           <p className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-[#059669] dark:text-dm-accent">
@@ -129,9 +129,9 @@ export default function Layout({ children }) {
               onClick={() => setMobileNav(false)}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-slate-100 text-slate-900 dark:bg-violet-500/10 dark:text-dm-fg'
+                    ? 'bg-slate-100 text-slate-900 dark:bg-violet-500/[0.12] dark:text-dm-fg dark:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.15)]'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-dm-muted dark:hover:bg-white/[0.04] dark:hover:text-dm-fg'
                 )
               }
@@ -202,7 +202,7 @@ export default function Layout({ children }) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-dm-border dark:bg-dm-sidebar',
+          'fixed inset-y-0 left-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 dark:border-white/[0.06] dark:bg-dm-sidebar dark:shadow-[4px_0_24px_rgba(0,0,0,0.25)]',
           mobileNav ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           'lg:sticky lg:z-30'
         )}
@@ -221,7 +221,7 @@ export default function Layout({ children }) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-0">
-        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-dm-border dark:bg-dm-bg/80 dark:backdrop-blur-xl lg:px-6">
+        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-white/[0.06] dark:bg-dm-bg/85 dark:backdrop-blur-xl lg:px-6">
           <button
             type="button"
             className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-dm-border dark:text-dm-fg dark:hover:bg-dm-hover lg:hidden"

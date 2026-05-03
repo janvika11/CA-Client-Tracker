@@ -2,6 +2,18 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
+    <!-- Theme before paint: must match THEME_STORAGE_KEY in src/lib/themeStorage.js — unset → dark -->
+    <script>
+      (function () {
+        try {
+          var v = localStorage.getItem('ca_tracker_theme');
+          if (v === 'light') document.documentElement.classList.remove('dark');
+          else document.documentElement.classList.add('dark');
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

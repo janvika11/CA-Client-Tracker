@@ -14,6 +14,7 @@ import mongoose from 'mongoose';
 
 // Import routes
 import authRoutes from './routes/auth.js';
+import usersRoutes from './routes/users.js';
 import servicesRoutes from './routes/services.js';
 import clientsRoutes from './routes/clients.js';
 import clientServicesRoutes from './routes/clientServices.js';
@@ -125,6 +126,7 @@ app.get('/api', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/client-services', clientServicesRoutes);

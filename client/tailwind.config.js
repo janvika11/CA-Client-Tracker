@@ -8,17 +8,17 @@ export default {
         sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
-        /** Dark theme: deep violet canvas, layered surfaces, violet CTAs, bright chart/status hues */
+        /** Dark theme: deep purple/navy canvas (Linear/Turbo-style), elevated cards, violet accent */
         dm: {
-          bg: '#0e0c14',
-          sidebar: '#07060b',
-          surface: '#16141f',
-          hover: '#1f1d2d',
-          border: '#2d2a3d',
-          subtle: '#252330',
-          fg: '#fafafa',
-          muted: '#a39fb8',
-          dim: '#6b6780',
+          bg: '#0f0f1a',
+          sidebar: '#12121f',
+          surface: '#1a1a2e',
+          hover: '#252538',
+          border: '#2a2a42',
+          subtle: '#222232',
+          fg: '#f4f4f8',
+          muted: '#9ca3c4',
+          dim: '#6b6b8a',
           table: '#e4e4e7',
           accent: '#a78bfa',
           green: '#34d399',
@@ -46,7 +46,7 @@ export default {
       boxShadow: {
         card: '0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06)',
         'card-dark':
-          '0 8px 40px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(167 139 250 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.06)',
+          '0 8px 32px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(167 139 250 / 0.07), inset 0 1px 0 rgb(255 255 255 / 0.04)',
       },
     },
   },

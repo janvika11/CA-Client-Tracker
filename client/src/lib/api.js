@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthToken, getAuthToken } from './authToken';
 
 // API origin: never hardcode Render here — set VITE_API_URL to your real Render HTTPS URL (no path, no trailing slash).
 // Local: optional client/.env with VITE_API_URL=http://localhost:5000 (default below is localhost).
@@ -12,6 +13,15 @@ if (import.meta.env.PROD && !rawApi) {
 const api = axios.create({
   baseURL: `${String(BASE_URL).replace(/\/$/, '')}/api`,
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const t = getAuthToken();
+  if (t) {
+    if (!config.headers) config.headers = {};
+    config.headers.Authorization = `Bearer ${t}`;
+  }
+  return config;
 });
 
 const unwrap = (res) => res?.data?.data ?? res?.data;
@@ -30,8 +40,17 @@ function withItems(payload, arrayKeys) {
 }
 
 export const login = async (payload) => unwrap(await api.post('/auth/login', payload));
-export const logout = async () => unwrap(await api.post('/auth/logout'));
+export const logout = async () => {
+  try {
+    return unwrap(await api.post('/auth/logout'));
+  } finally {
+    clearAuthToken();
+  }
+};
 export const getMe = async () => unwrap(await api.get('/auth/me'));
+
+export const getTeamUsers = async () => unwrap(await api.get('/users'));
+export const createTeamUser = async (payload) => unwrap(await api.post('/users', payload));
 
 export const getClients = async (params) =>
   withItems(unwrap(await api.get('/clients', { params })), ['clients']);

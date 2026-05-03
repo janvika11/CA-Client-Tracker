@@ -9,11 +9,25 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { getBillingEntries, getClients, getPayments, getServices } from '../lib/api';
 import { formatDate, formatINR, formatINRShort, getAvatarToneClass, getInitials } from '../lib/utils';
 import { DashboardErrorBoundary } from '../components/DashboardErrorBoundary';
 import { Card } from '../components/ui/card';
 import { SkeletonBlock } from '../components/ui/skeleton';
+import { useUIStore } from '../store/uiStore';
 
 /** KPI rows store `icon` as a component ref — keep these at module scope (same bindings as top-level imports). */
 const DashboardIcons = {
@@ -29,6 +43,8 @@ dayjs.extend(advancedFormat);
 
 const AGING_BUCKET_ORDER = ['0-30', '31-60', '61-90', '90+'];
 const AGING_LABELS = { '0-30': '0–30d', '31-60': '31–60d', '61-90': '61–90d', '90+': '90+d' };
+const AGING_DONUT_COLORS = ['#34d399', '#fbbf24', '#fb923c', '#f87171'];
+const SERVICE_CHART_COLORS = ['#8b5cf6', '#34d399', '#fbbf24', '#fb7185', '#22d3ee', '#a78bfa'];
 
 function asArray(payload, keys) {
   if (payload == null) return [];
@@ -42,6 +58,15 @@ function asArray(payload, keys) {
 }
 
 function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }) {
+  const isDark = useUIStore((state) => state.isDark);
+  const chartGrid = isDark ? '#2a2a42' : '#e8e8f0';
+  const chartAxis = isDark ? '#8b8ba8' : '#64748b';
+  const chartTooltipStyle = {
+    borderRadius: 12,
+    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+    backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
+    boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.45)' : '0 4px 16px rgba(0,0,0,0.08)',
+  };
 
   const clientRows = asArray(clientsData, ['clients']).filter(Boolean);
   const paymentRows = asArray(paymentsData, ['payments']).filter(Boolean);
@@ -96,10 +121,6 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
     if (monthlyMap[key]) monthlyMap[key].Collected += Number(row?.amount || 0);
   });
   const monthlyChart = Object.values(monthlyMap);
-  const monthlyMax = Math.max(
-    1,
-    ...monthlyChart.map((m) => Math.max(Number(m.Billed) || 0, Number(m.Collected) || 0))
-  );
 
   const topClientsMap = {};
   billingRows.forEach((row) => {
@@ -143,193 +164,230 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
     .sort((a, b) => (dayjs(b.date).valueOf() || 0) - (dayjs(a.date).valueOf() || 0))
     .slice(0, 16);
 
-  const serviceBarHue = [
-    'bg-emerald-600 dark:bg-emerald-500',
-    'bg-amber-500 dark:bg-amber-500',
-    'bg-rose-500 dark:bg-rose-500',
-    'bg-slate-500 dark:bg-slate-400',
-    'bg-sky-500 dark:bg-sky-400',
-    'bg-teal-600 dark:bg-teal-500',
-  ];
+  const agingDonutData = AGING_BUCKET_ORDER.map((key) => ({
+    name: AGING_LABELS[key] ?? key,
+    key,
+    value: Number(agingBuckets[key] || 0),
+  }));
+
+  const serviceBarChartData = [...revenueByService]
+    .sort((a, b) => Number(b.value) - Number(a.value))
+    .slice(0, 10)
+    .map((row, idx) => ({
+      name: row.name.length > 22 ? `${row.name.slice(0, 20)}…` : row.name,
+      fullName: row.name,
+      value: Number(row.value || 0),
+      fill: SERVICE_CHART_COLORS[idx % SERVICE_CHART_COLORS.length],
+    }));
 
   const kpis = [
     {
       label: 'Total outstanding',
       value: formatINR(totalOutstanding),
-      border: 'border-l-rose-500 dark:border-l-dm-danger',
       icon: DashboardIcons.AlertTriangle,
       iconWrap:
-        'bg-rose-100 text-rose-700 dark:bg-[#450a0a]/50 dark:text-dm-danger dark:shadow-[inset_0_0_0_1px_rgba(248,113,113,0.35)]',
-      valueClass: 'dark:text-dm-danger',
+        'bg-rose-500/15 text-rose-600 ring-1 ring-rose-500/25 dark:bg-rose-500/10 dark:text-dm-danger dark:ring-rose-400/20',
+      valueClass: 'text-rose-700 dark:text-dm-danger',
     },
     {
       label: 'Collected this month',
       value: formatINR(collectedThisMonth),
-      border: 'border-l-emerald-600 dark:border-l-dm-green',
       icon: DashboardIcons.Wallet,
       iconWrap:
-        'bg-emerald-100 text-emerald-800 dark:bg-[#064e3b]/55 dark:text-dm-green dark:shadow-[inset_0_0_0_1px_rgba(52,211,153,0.35)]',
-      valueClass: 'dark:text-dm-green',
+        'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/25 dark:bg-emerald-500/10 dark:text-dm-green dark:ring-emerald-400/20',
+      valueClass: 'text-emerald-800 dark:text-dm-green',
     },
     {
       label: 'Overdue 30 / 60 / 90+ days',
       value: `${formatINR(overdueAges.over30)} · ${formatINR(overdueAges.over60)} · ${formatINR(overdueAges.over90)}`,
-      border: 'border-l-amber-500 dark:border-l-dm-warn',
       icon: DashboardIcons.Activity,
       iconWrap:
-        'bg-amber-100 text-amber-900 dark:bg-[#451a03]/55 dark:text-dm-warn dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]',
+        'bg-amber-500/15 text-amber-800 ring-1 ring-amber-500/25 dark:bg-amber-500/10 dark:text-dm-warn dark:ring-amber-400/20',
       small: true,
-      valueClass: 'dark:text-dm-warn',
+      valueClass: 'text-amber-900 dark:text-dm-warn',
     },
     {
       label: 'Active clients',
       value: String(activeCount),
-      border: 'border-l-sky-600 dark:border-l-dm-info',
+      sub: `${totalClientCount} total in workspace`,
       icon: DashboardIcons.Users,
       iconWrap:
-        'bg-sky-100 text-sky-800 dark:bg-[#1e3a5f]/65 dark:text-dm-info dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.35)]',
-      valueClass: 'dark:text-dm-green',
+        'bg-violet-500/15 text-violet-700 ring-1 ring-violet-500/25 dark:bg-violet-500/10 dark:text-dm-accent dark:ring-violet-400/25',
+      valueClass: 'text-slate-900 dark:text-dm-fg',
     },
   ];
 
+  const monthlyTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="rounded-xl px-3 py-2 text-xs shadow-lg" style={chartTooltipStyle}>
+        <p className="mb-1.5 font-semibold text-zinc-800 dark:text-dm-fg">{label}</p>
+        {payload.map((entry) => (
+          <p key={entry.dataKey} className="tabular-nums text-zinc-600 dark:text-dm-muted">
+            <span className="font-medium text-zinc-500 dark:text-dm-dim">{entry.name}:</span>{' '}
+            <span className="text-zinc-900 dark:text-dm-fg">{formatINR(entry.value)}</span>
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  const agingTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const row = payload[0]?.payload;
+    if (!row) return null;
+    return (
+      <div className="rounded-xl px-3 py-2 text-xs shadow-lg" style={chartTooltipStyle}>
+        <p className="font-semibold text-zinc-800 dark:text-dm-fg">{row.name}</p>
+        <p className="mt-0.5 tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(row.value)}</p>
+      </div>
+    );
+  };
+
+  const serviceTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const row = payload[0]?.payload;
+    if (!row) return null;
+    return (
+      <div className="max-w-xs rounded-xl px-3 py-2 text-xs shadow-lg" style={chartTooltipStyle}>
+        <p className="font-semibold text-zinc-800 dark:text-dm-fg">{row.fullName}</p>
+        <p className="mt-0.5 tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(row.value)}</p>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-1 border-b border-slate-200 pb-6 dark:border-dm-border sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-slate-200 pb-8 dark:border-white/[0.06] sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#059669] dark:text-dm-accent">{welcomeDate}</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-dm-fg">Dashboard</h1>
-          <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-dm-muted">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-dm-accent">
+            {welcomeDate}
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-dm-fg sm:text-4xl">
+            Dashboard
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600 dark:text-dm-muted">
             Collections, aging, and receivables exposure at a glance for your CA practice.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon ?? DashboardIcons.Activity;
           return (
-            <Card key={kpi.label} className={`border-l-4 ${kpi.border} p-0 shadow-card`}>
-              <div className="flex items-start gap-4 p-4">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${kpi.iconWrap}`}>
+            <Card key={kpi.label} className="p-0 shadow-card dark:shadow-card-dark">
+              <div className="flex items-start justify-between gap-3 p-5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-dm-dim">
+                    {kpi.label}
+                  </p>
+                  <p
+                    className={`mt-3 font-semibold tabular-nums tracking-tight ${kpi.valueClass ?? 'text-slate-900 dark:text-dm-fg'} ${kpi.small ? 'text-sm leading-relaxed sm:text-[13px]' : 'text-3xl sm:text-[2rem]'}`}
+                  >
+                    {kpi.value}
+                  </p>
+                  {kpi.sub ? (
+                    <p className="mt-2 text-xs font-medium text-zinc-500 dark:text-dm-muted">{kpi.sub}</p>
+                  ) : null}
+                </div>
+                <span
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${kpi.iconWrap}`}
+                >
                   <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                 </span>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-[#94a3b8]">{kpi.label}</p>
-                  {kpi.kind === 'activeSplit' ? (
-                    <p className="mt-2">
-                      <span className="text-3xl font-bold tabular-nums text-sky-600 dark:text-[#60a5fa]">{activeCount}</span>
-                      <span className="ml-1.5 text-sm font-medium tabular-nums text-zinc-500 dark:text-dm-muted">
-                        out of {totalClientCount} total
-                      </span>
-                    </p>
-                  ) : (
-                    <p
-                      className={`mt-1 font-bold tabular-nums ${kpi.valueClass ?? 'text-slate-900 dark:text-dm-fg'} ${kpi.small ? 'text-sm leading-relaxed sm:text-[13px]' : 'text-[1.65rem] leading-tight tracking-tight'}`}
-                    >
-                      {kpi.value}
-                    </p>
-                  )}
-                </div>
               </div>
             </Card>
           );
         })}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="shadow-card dark:shadow-card-dark">
-          <div className="mb-3 flex items-start justify-between gap-2">
+      <div className="grid gap-4 xl:grid-cols-5">
+        <Card className="p-5 shadow-card dark:shadow-card-dark xl:col-span-3">
+          <div className="mb-1 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Monthly billed vs collected</h2>
-              <p className="text-xs text-zinc-500 dark:text-[#475569]">Last six rolling months · bars in ₹</p>
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-dm-muted">Last six months · grouped bars (₹)</p>
             </div>
-            <LayoutGrid className="mt-0.5 h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
+            <LayoutGrid className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400 dark:text-dm-dim" aria-hidden />
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-[11px] text-zinc-500 dark:text-dm-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-sm bg-zinc-400 dark:bg-slate-500" /> Billed
+          <div className="mb-3 flex flex-wrap gap-4 text-[11px] font-medium text-zinc-500 dark:text-dm-muted">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-violet-500" /> Billed
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-sm bg-emerald-600 dark:bg-emerald-500" /> Collected
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Collected
             </span>
           </div>
-          <div className="mt-4 flex h-44 items-end justify-between gap-1 border-t border-zinc-100 pt-4 dark:border-dm-border">
-            {monthlyChart.map((m, mi) => {
-              if (m == null || typeof m !== 'object') return null;
-              const label = m.month ?? `m-${mi}`;
-              const billed = Number(m.Billed) || 0;
-              const collected = Number(m.Collected) || 0;
-              const denom = Number.isFinite(monthlyMax) && monthlyMax > 0 ? monthlyMax : 1;
-              const pctB = Math.round((billed / denom) * 100);
-              const pctC = Math.round((collected / denom) * 100);
-              const hasMonth = billed > 0 || collected > 0;
-              return (
-                <div key={label} className="flex min-w-0 flex-1 flex-col items-center">
-                  <div className="mx-auto flex h-36 w-full max-w-[3.5rem] items-end justify-center gap-1">
-                    <div
-                      className="min-h-0 w-[42%] max-w-3 rounded-t bg-zinc-400 dark:bg-slate-500"
-                      style={{ height: `${hasMonth ? Math.max(pctB, billed ? 2 : 0) : 0}%` }}
-                      title={`Billed ${formatINR(billed)}`}
-                    />
-                    <div
-                      className="min-h-0 w-[42%] max-w-3 rounded-t bg-emerald-600 dark:bg-emerald-500"
-                      style={{ height: `${hasMonth ? Math.max(pctC, collected ? 2 : 0) : 0}%` }}
-                      title={`Collected ${formatINR(collected)}`}
-                    />
-                  </div>
-                  <span className="mt-2 truncate text-center text-[10px] font-semibold text-zinc-500 dark:text-dm-muted">
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="h-[min(22rem,50vw)] w-full min-h-[240px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barGap={2} barCategoryGap="18%">
+                <CartesianGrid stroke={chartGrid} strokeDasharray="4 4" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: chartAxis, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => formatINRShort(v)}
+                  tick={{ fill: chartAxis, fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={56}
+                />
+                <Tooltip content={monthlyTooltip} cursor={{ fill: isDark ? 'rgba(167,139,250,0.06)' : 'rgba(139,92,246,0.08)' }} />
+                <Bar dataKey="Billed" fill="#8b5cf6" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                <Bar dataKey="Collected" fill="#34d399" radius={[6, 6, 0, 0]} maxBarSize={36} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="shadow-card dark:shadow-card-dark">
-          <div className="mb-3">
+        <Card className="p-5 shadow-card dark:shadow-card-dark xl:col-span-2">
+          <div className="mb-1">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Outstanding aging</h2>
-            <p className="text-xs text-zinc-500 dark:text-[#475569]">0–30d · 31–60d · 61–90d · 90+d buckets</p>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-dm-muted">Share of receivables by due-date bucket</p>
           </div>
           {agingTotal > 0 ? (
-            <div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {AGING_BUCKET_ORDER.map((key) => {
-                  const val = Number(agingBuckets[key] || 0);
-                  const share = agingTotal > 0 ? Math.round((val / agingTotal) * 100) : 0;
-                  const barTone = {
-                    '0-30': 'bg-emerald-500/90 dark:bg-emerald-500/80',
-                    '31-60': 'bg-amber-500/90 dark:bg-amber-500/80',
-                    '61-90': 'bg-orange-500/90 dark:bg-orange-500/70',
-                    '90+': 'bg-red-700/90 dark:bg-red-600/85',
-                  };
-                  const toneClass = barTone[key] ?? 'bg-zinc-400 dark:bg-zinc-500';
-                  return (
-                    <div
-                      key={key}
-                      className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-dm-border dark:bg-dm-hover/30"
+            <div className="relative mt-2">
+              <div className="h-[min(20rem,55vw)] w-full min-h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={agingDonutData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="58%"
+                      outerRadius="82%"
+                      paddingAngle={2}
+                      stroke={isDark ? '#1a1a2e' : '#fff'}
+                      strokeWidth={2}
                     >
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-dm-muted">
-                        {AGING_LABELS[key] ?? key}
-                      </p>
-                      <p className="mt-1 text-lg font-bold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINR(val)}</p>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-dm-subtle">
-                        <div className={`h-full rounded-full ${toneClass}`} style={{ width: `${share}%` }} />
-                      </div>
-                      <p className="mt-1 text-[10px] text-zinc-500 dark:text-dm-dim">{share}% of total</p>
-                    </div>
-                  );
-                })}
+                      {agingDonutData.map((entry, index) => (
+                        <Cell key={entry.key} fill={AGING_DONUT_COLORS[index % AGING_DONUT_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={agingTooltip} />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={28}
+                      formatter={(value) => <span className="text-[11px] text-zinc-600 dark:text-dm-muted">{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <p className="mt-4 text-center text-sm tabular-nums text-zinc-700 dark:text-dm-muted">
-                <span className="font-semibold text-zinc-900 dark:text-dm-fg">{formatINRShort(agingTotal)}</span>
-                <span className="ml-1 text-xs font-medium uppercase tracking-wide"> total outstanding</span>
-              </p>
+              <div className="pointer-events-none absolute left-1/2 top-[42%] z-[1] -translate-x-1/2 -translate-y-1/2 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-dm-dim">Total</p>
+                <p className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-dm-fg">{formatINRShort(agingTotal)}</p>
+              </div>
             </div>
           ) : (
-            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 text-center dark:border-dm-border dark:bg-dm-hover/25">
+            <div className="flex min-h-[240px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 text-center dark:border-white/[0.08] dark:bg-dm-hover/20">
               <p className="text-sm font-medium text-zinc-600 dark:text-dm-muted">No receivables in aging buckets</p>
-              <p className="mt-1 max-w-xs text-xs text-zinc-500 dark:text-dm-dim">
+              <p className="mt-1 max-w-xs px-4 text-xs text-zinc-500 dark:text-dm-dim">
                 Chart appears when there is outstanding balance with due dates.
               </p>
             </div>
@@ -338,13 +396,13 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="shadow-card dark:shadow-card-dark">
-          <div className="mb-1">
+        <Card className="p-5 shadow-card dark:shadow-card-dark">
+          <div className="mb-4">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Top clients by outstanding</h2>
-            <p className="text-xs text-zinc-500 dark:text-dm-muted">Highest receivable balance</p>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-dm-muted">Highest receivable balance</p>
           </div>
           {topClients.length > 0 ? (
-            <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+            <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
               {topClients.map((c, i) => {
                 if (c == null || typeof c !== 'object') return null;
                 const name = c.name ?? 'Unknown';
@@ -354,19 +412,19 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
                 return (
                   <div
                     key={`${name}-${i}`}
-                    className="rounded-lg border border-zinc-100 bg-white/80 px-3 py-2 dark:border-dm-border dark:bg-dm-bg/40"
+                    className="rounded-xl border border-zinc-100/90 bg-zinc-50/50 px-3 py-2.5 dark:border-white/[0.06] dark:bg-dm-bg/30"
                   >
                     <div className="flex items-center justify-between gap-2 text-sm">
                       <span className="min-w-0 truncate font-medium text-zinc-800 dark:text-dm-fg">
                         {i + 1}. {name}
                       </span>
-                      <span className="shrink-0 font-semibold tabular-nums text-rose-600 dark:text-red-400">
+                      <span className="shrink-0 font-semibold tabular-nums text-rose-600 dark:text-dm-danger">
                         {formatINR(out)}
                       </span>
                     </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-dm-subtle">
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-200/90 dark:bg-dm-subtle">
                       <div
-                        className="h-full rounded-full bg-rose-400 dark:bg-rose-500/90"
+                        className="h-full rounded-full bg-gradient-to-r from-rose-400 to-rose-500 dark:from-rose-500/90 dark:to-dm-danger"
                         style={{ width: `${w}%` }}
                       />
                     </div>
@@ -375,75 +433,78 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData }
               })}
             </div>
           ) : (
-            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-white/[0.08] dark:bg-dm-hover/15 dark:text-dm-muted">
               No client-level outstanding yet.
             </div>
           )}
         </Card>
 
-        <Card className="shadow-card dark:shadow-card-dark">
-          <div className="mb-1 flex items-start justify-between gap-2">
+        <Card className="p-5 shadow-card dark:shadow-card-dark">
+          <div className="mb-4 flex items-start justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Service revenue (collected)</h2>
-              <p className="text-xs text-zinc-500 dark:text-dm-muted">By service line</p>
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-dm-muted">Horizontal bars by service line</p>
             </div>
-            <IndianRupee className="h-4 w-4 text-zinc-400 dark:text-dm-muted" aria-hidden />
+            <IndianRupee className="h-4 w-4 shrink-0 text-zinc-400 dark:text-dm-dim" aria-hidden />
           </div>
-          {revenueByService.length > 0 ? (
-            <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
-              {revenueByService.map((row, idx) => {
-                if (row == null || typeof row !== 'object') return null;
-                const rowName = row.name ?? 'Service';
-                const rowVal = Number(row.value ?? 0);
-                const maxRev = Math.max(
-                  1,
-                  ...revenueByService.map((r) => Number(r?.value ?? 0)).filter((n) => Number.isFinite(n))
-                );
-                const safeMax = Number.isFinite(maxRev) && maxRev > 0 ? maxRev : 1;
-                const w = Math.round((rowVal / safeMax) * 100);
-                return (
-                  <div
-                    key={`${rowName}-${idx}`}
-                    className="rounded-lg border border-zinc-100 bg-white/80 px-3 py-2 dark:border-dm-border dark:bg-dm-bg/40"
-                  >
-                    <div className="flex items-center justify-between gap-2 text-sm">
-                      <span className="min-w-0 truncate font-medium text-zinc-800 dark:text-dm-fg">{rowName}</span>
-                      <span className="shrink-0 font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
-                        {formatINR(rowVal)}
-                      </span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-dm-subtle">
-                      <div
-                        className={`h-full rounded-full ${serviceBarHue[idx % serviceBarHue.length]}`}
-                        style={{ width: `${w}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+          {serviceBarChartData.length > 0 ? (
+            <div className="h-[min(22rem,70vw)] w-full min-h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={serviceBarChartData}
+                  layout="vertical"
+                  margin={{ top: 4, right: 12, left: 4, bottom: 4 }}
+                  barCategoryGap="16%"
+                >
+                  <CartesianGrid stroke={chartGrid} strokeDasharray="4 4" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    tickFormatter={(v) => formatINRShort(v)}
+                    tick={{ fill: chartAxis, fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={108}
+                    tick={{ fill: chartAxis, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={serviceTooltip} cursor={{ fill: isDark ? 'rgba(167,139,250,0.06)' : 'rgba(139,92,246,0.06)' }} />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]} maxBarSize={22}>
+                    {serviceBarChartData.map((entry, index) => (
+                      <Cell key={`cell-${entry.name}-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-dm-border dark:bg-dm-hover/20 dark:text-dm-muted">
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-sm text-zinc-500 dark:border-white/[0.08] dark:bg-dm-hover/15 dark:text-dm-muted">
               No collected revenue by service line yet.
             </div>
           )}
         </Card>
       </div>
 
-      <Card className="shadow-card dark:shadow-card-dark">
+      <Card className="p-5 shadow-card dark:shadow-card-dark">
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-dm-fg">Recent activity</h2>
-        <p className="text-xs text-zinc-500 dark:text-dm-muted">Payments and overdue notices</p>
+        <p className="mt-0.5 text-xs text-zinc-500 dark:text-dm-muted">Payments and overdue notices</p>
 
         {activityFeed.length === 0 ? (
-          <div className="mt-8 flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-dm-border">
+          <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 py-12 text-center dark:border-white/[0.08]">
             <Wallet className="h-10 w-10 text-zinc-300 dark:text-dm-muted" aria-hidden />
             <p className="mt-3 text-sm font-medium text-zinc-600 dark:text-dm-muted">No recent activity yet</p>
-            <p className="mt-1 max-w-sm text-xs text-zinc-500">Record payments or generate billing to see a live feed here.</p>
+            <p className="mt-1 max-w-sm text-xs text-zinc-500 dark:text-dm-dim">
+              Record payments or generate billing to see a live feed here.
+            </p>
           </div>
         ) : (
           <ul className="relative mt-6 space-y-0 pl-2">
             <span
-              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-dm-subtle"
+              className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-200 dark:bg-dm-border"
               aria-hidden
             />
             {activityFeed.map((item, index) => {

@@ -97,9 +97,13 @@ const mongooseOpts = {
   serverSelectionTimeoutMS: 15_000,
 };
 
-// Health check (no rate limit)
+// Health check (no rate limit) — always 200 so Render sees a listening process; `db` reflects Mongo readiness.
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running', timestamp: new Date() });
+  res.json({
+    status: 'Server is running',
+    db: mongoose.connection.readyState === 1,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // API Info
@@ -135,41 +139,17 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-async function start() {
-  try {
-    if (typeof dns.setDefaultResultOrder === 'function') {
-      dns.setDefaultResultOrder('ipv4first');
-    }
-    await mongoose.connect(MONGODB_URI, mongooseOpts);
-    console.log('✓ MongoDB connected');
-    startCronJobs();
-  } catch (err) {
-    const msg = String(err?.message ?? err ?? '');
-    console.error('MongoDB connection failed:', msg);
-    if (/querySrv|_mongodb\._tcp/i.test(msg)) {
-      console.error(
-        '\nThis error is DNS for mongodb+srv:// (Atlas SRV record lookup), not your password.\n' +
-          'Often: VPN, strict firewall/antivirus DNS, ISP/corporate DNS, or flaky network.\n' +
-          'Try:\n' +
-          '  1. Atlas → Connect → Drivers → use the non-SRV "standard connection" string (explicit hostnames :27017)\n' +
-          '     and set that as MONGODB_URI.\n' +
-          '  2. Pause VPN; try mobile hotspot.\n' +
-          '  3. Windows: try another DNS (e.g. 1.1.1.1 or 8.8.8.8) on your active adapter.\n'
-      );
-    } else if (
-      !/querySrv/i.test(msg) &&
-      /ECONNREFUSED.*(127\.0\.0\.1|localhost).*27017/i.test(msg.replace(/\s+/g, ' '))
-    ) {
-      console.error('\nStill targeting local MongoDB — confirm server/.env has MONGODB_URI saved.');
-    }
-    console.error(
-      'Atlas (after DNS works): allow your IP / 0.0.0.0/0 in Network Access; cluster not paused; user/password matches URI.'
-    );
-    process.exit(1);
+async function connectMongo() {
+  if (typeof dns.setDefaultResultOrder === 'function') {
+    dns.setDefaultResultOrder('ipv4first');
   }
+  await mongoose.connect(MONGODB_URI, mongooseOpts);
+  console.log('✓ MongoDB connected');
+  startCronJobs();
+}
 
-  app.listen(PORT, () => {
-    console.log(`
+function logStartupBanner() {
+  console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║   CA Practice Management & Billing Tracker v3              ║
 ║   ✓ Server running on http://localhost:${PORT}
@@ -178,7 +158,41 @@ async function start() {
 ║   ✓ CORS: https://ca-client-tracker.vercel.app + *.vercel.app + localhost + CORS_ORIGIN ║
 ║   ✓ Cron Jobs: Enabled (Billing + Overdue)                 ║
 ╚═══════════════════════════════════════════════════════════╝
-    `);
+  `);
+}
+
+function start() {
+  // Bind HTTP before MongoDB so OPTIONS/CORS and Render health checks succeed while Atlas connects.
+  app.listen(PORT, () => {
+    console.log(`✓ HTTP listening on port ${PORT} (MongoDB connecting…)`);
+    connectMongo()
+      .then(() => {
+        logStartupBanner();
+      })
+      .catch((err) => {
+        const msg = String(err?.message ?? err ?? '');
+        console.error('MongoDB connection failed:', msg);
+        if (/querySrv|_mongodb\._tcp/i.test(msg)) {
+          console.error(
+            '\nThis error is DNS for mongodb+srv:// (Atlas SRV record lookup), not your password.\n' +
+              'Often: VPN, strict firewall/antivirus DNS, ISP/corporate DNS, or flaky network.\n' +
+              'Try:\n' +
+              '  1. Atlas → Connect → Drivers → use the non-SRV "standard connection" string (explicit hostnames :27017)\n' +
+              '     and set that as MONGODB_URI.\n' +
+              '  2. Pause VPN; try mobile hotspot.\n' +
+              '  3. Windows: try another DNS (e.g. 1.1.1.1 or 8.8.8.8) on your active adapter.\n'
+          );
+        } else if (
+          !/querySrv/i.test(msg) &&
+          /ECONNREFUSED.*(127\.0\.0\.1|localhost).*27017/i.test(msg.replace(/\s+/g, ' '))
+        ) {
+          console.error('\nStill targeting local MongoDB — confirm server/.env has MONGODB_URI saved.');
+        }
+        console.error(
+          'Atlas (after DNS works): allow your IP / 0.0.0.0/0 in Network Access; cluster not paused; user/password matches URI.'
+        );
+        process.exit(1);
+      });
   });
 }
 

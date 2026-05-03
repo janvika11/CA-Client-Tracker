@@ -3,10 +3,10 @@ import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useQuery } from '@tanstack/react-query';
 import {
+  Activity,
   AlertTriangle,
   IndianRupee,
   LayoutGrid,
-  TrendingUp,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -236,7 +236,7 @@ function DashboardBody({ clientsData, paymentsData, billingsData, servicesData, 
       label: 'Overdue 30 / 60 / 90+ days',
       value: `${formatINR(overdueAges.over30)} · ${formatINR(overdueAges.over60)} · ${formatINR(overdueAges.over90)}`,
       border: 'border-l-amber-500 dark:border-l-dm-warn',
-      icon: TrendingUp,
+      icon: Activity,
       iconWrap:
         'bg-amber-100 text-amber-900 dark:bg-[#451a03]/55 dark:text-dm-warn dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]',
       small: true,
